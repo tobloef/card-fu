@@ -1,0 +1,16 @@
+{
+  "name": "cardjitsu",
+  "description": "Simple game based on Club Penguins Card-Jitsu",
+  "author": "Tobias L√√∏fgren",
+  "version": "0.1.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "debug": "~2.2.0",
+    "express": "~4.13.1",
+    "serve-favicon": "~2.3.0",
+    "socket.io": "^1.4.4"
+  }
+}
