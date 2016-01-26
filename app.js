@@ -16,7 +16,7 @@ app.get("/", function(req, res) {
 });
 
 //If page doesn't exist
-app.get("*", function(req, res){
+app.get("*", function(req, res) {
     res.send("404", 404);
 });
 
