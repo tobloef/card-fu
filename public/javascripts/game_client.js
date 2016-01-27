@@ -6,14 +6,25 @@ submitUsername(prompt("Please enter a username:"));
 socket.on("username response", function(response) {
     if (!response.exists) {
         displayMainScreen();
-        getStats();
     } else {
         submitUsername(prompt("Username already exists, please enter a different one:"));
     }
 });
 
-socket.on("stats", function(stats) {
-	displayStats(stats);
+socket.on("global stats", function(stats) {
+    displayGlobalStats(stats);
+});
+
+socket.on("user stats", function(stats) {
+    displayUserStats(stats);
+});
+
+socket.on("enter match", function(usernames) {
+    prepareForMatch(usernames);
+});
+
+socket.on("queue response", function() {
+    queueEntered();
 });
 
 //////////  jQuery Events  \\\\\\\\\\
@@ -31,14 +42,27 @@ function getStats() {
     socket.emit("get stats");
 }
 
-function displayStats(stats) {
-	$("#playerListHeader").text(stats.onlinePlayers.length + " players online:");
+function displayGlobalStats(stats) {
+    $("#playerListHeader").text(stats.onlinePlayers.length + " players online:");
     $("#playerList").empty()
     for (var i = 0; i < stats.onlinePlayers.length; i++) {
         $("#playerList").append("<li>" + stats.onlinePlayers[i] + "</li>");
     }
 }
 
+function displayUserStats(stats) {
+    //Do something
+}
+
 function displayMainScreen() {
     $("#mainScreen").css("visibility", "visible");
+}
+
+function queueEntered() {
+    $("#log").append("<li>" + "Entered the queue. Waiting for an opponent..." + "</li>");
+}
+
+function prepareForMatch(usernames) {
+    $("#log").append("<li>" + "Match started " + usernames.join(" vs ") + "</li>");
+    $("#matchScreen").css("visibility", "visible");
 }

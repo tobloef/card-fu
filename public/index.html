@@ -6,14 +6,19 @@
 </head>
 
 <body>
+	<div id="matchScreen" style="visibility: hidden">
+		<button type="button" id="0"></button>
+		<button type="button" id="1"></button>
+		<button type="button" id="2"></button>
+		<button type="button" id="3"></button>
+		<button type="button" id="4"></button>
+	</div>
 	<div id="mainScreen" style="visibility: hidden">
 		<button type="button" id="enterQueue">Enter queue!</button>
-		<div id="stats">
-			<h3 id="playerListHeader">Loading stats...</h3>
-			<ul id="playerList">
-			
-			</ul>
-		</div>
+		<h3 id="playerListHeader">Loading stats...</h3>
+		<ul id="playerList"></ul>
+		<h3 id="logHeader">Log:</h3>
+		<ul id="log"></ul>
 	</div>
 
 	<script src="/socket.io/socket.io.js"></script>
