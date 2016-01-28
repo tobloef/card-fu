@@ -25,12 +25,20 @@ module.exports.listen = function(app) {
     io = socketio.listen(app);
     io.on("connection", function(socket) {
 
+		socket.on("disconnect", function() {
+			playerDisconnected(socket);
+		});
+
         socket.on("username submit", function(desiredUsername) {
             processUsername(desiredUsername, socket);
         });
 
         socket.on("enter queue", function() {
             enterQueue(socket);
+        });
+        
+        socket.on("leave queue", function() {
+            leaveQueue(socket);
         });
 
         socket.on("get user stats", function(socket) {
@@ -72,10 +80,19 @@ function playerExists(username) {
     return false;
 }
 
+function playerDisconnected(socket) {
+    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	var index = players.indexOf(findPlayerById(socket.id));
+	if (index > -1) {
+		players.splice(index, 1);
+	}
+	leaveQueue(socket);
+}
+
 function processUsername(desiredUsername, socket) {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-    var playerExists = playerExists(desiredUsername);
-    if (!playerExists) {
+    var doesExist = playerExists(desiredUsername);
+    if (!doesExist) {
         players.push({
             username: desiredUsername,
             socketId: socket.id,
@@ -85,7 +102,7 @@ function processUsername(desiredUsername, socket) {
         sendGlobalStats();
     }
     socket.emit("username response", {
-        exists: playerExists
+        exists: doesExist
     });
 }
 
@@ -93,7 +110,7 @@ function sendGlobalStats() {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
     stats = {
         onlinePlayers: []
-    }
+    };
     for (var i = 0; i < players.length; i++) {
         stats.onlinePlayers.push(players[i].username);
     }
@@ -110,11 +127,20 @@ function enterQueue(socket) {
     var player = findPlayerById(socket.id);
     if (queue.indexOf(player) === -1) {
         queue.push(player);
-        socket.emit("queue response");
+        socket.emit("queue entered");
         if (queue.length >= 2) {
             createMatch([queue.shift(), queue.shift()]);
         }
     }
+}
+
+function leaveQueue(socket) {
+    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	var index = queue.indexOf(findPlayerById(socket.id));
+	if (index > -1) {
+		queue.splice(index, 1);
+	}
+	socket.emit("queue left");
 }
 
 function createMatch(participents) {

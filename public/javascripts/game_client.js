@@ -23,14 +23,18 @@ socket.on("enter match", function(usernames) {
     prepareForMatch(usernames);
 });
 
-socket.on("queue response", function() {
+socket.on("queue entered", function() {
     queueEntered();
 });
 
-//////////  jQuery Events  \\\\\\\\\\
-$("#enterQueue").click(function() {
-    socket.emit("enter queue");
+socket.on("queue left", function() {
+	queueLeft();
 });
+
+//////////  jQuery Events  \\\\\\\\\\
+$("#queueButton").click(enterQueue);
+
+$("#clearButton").click(clearLog);
 
 
 //////////  Methods  \\\\\\\\\\
@@ -44,7 +48,7 @@ function getStats() {
 
 function displayGlobalStats(stats) {
     $("#playerListHeader").text(stats.onlinePlayers.length + " players online:");
-    $("#playerList").empty()
+    $("#playerList").empty();
     for (var i = 0; i < stats.onlinePlayers.length; i++) {
         $("#playerList").append("<li>" + stats.onlinePlayers[i] + "</li>");
     }
@@ -58,11 +62,31 @@ function displayMainScreen() {
     $("#mainScreen").css("visibility", "visible");
 }
 
+function enterQueue() {
+	socket.emit("enter queue");
+	$("#queueButton").html("Leave Queue");
+	$("#queueButton").off("click").on("click", leaveQueue);
+}
+
+function leaveQueue() {
+	socket.emit("leave queue");
+	$("#queueButton").html("Enter Queue");
+	$("#queueButton").off("click").on("click", enterQueue);
+}
+
 function queueEntered() {
     $("#log").append("<li>" + "Entered the queue. Waiting for an opponent..." + "</li>");
+}
+
+function queueLeft() {
+    $("#log").append("<li>" + "Left the queue." + "</li>");
 }
 
 function prepareForMatch(usernames) {
     $("#log").append("<li>" + "Match started " + usernames.join(" vs ") + "</li>");
     $("#matchScreen").css("visibility", "visible");
+}
+
+function clearLog() {
+	$("#log").empty();
 }
