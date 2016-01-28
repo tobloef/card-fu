@@ -109,12 +109,12 @@ function enterQueue(socket) {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
     var player = findPlayerById(socket.id);
     if (queue.indexOf(player) === -1) {
-	    queue.push(player);
-	    socket.emit("queue response");
-	    if (queue.length >= 2) {
-	        createMatch([queue.shift(), queue.shift()]);
-	    }
-	}
+        queue.push(player);
+        socket.emit("queue response");
+        if (queue.length >= 2) {
+            createMatch([queue.shift(), queue.shift()]);
+        }
+    }
 }
 
 function createMatch(participents) {
