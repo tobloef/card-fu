@@ -6,20 +6,22 @@
 </head>
 
 <body>
-	<div id="matchScreen" style="visibility: hidden">
-		<button type="button" id="0"></button>
-		<button type="button" id="1"></button>
-		<button type="button" id="2"></button>
-		<button type="button" id="3"></button>
-		<button type="button" id="4"></button>
-	</div>
-	<div id="mainScreen" style="visibility: hidden">
-		<button type="button" id="queueButton">Enter Queue</button>
-		<button type="button" id="clearButton">Clear Log</button>
-		<h3 id="playerListHeader">Loading stats...</h3>
-		<ul id="playerList"></ul>
-		<h3 id="logHeader">Log:</h3>
+	<h3 id="user_info"></h3>
+	<div id="main_screen" style="visibility: hidden">
+		<button type="button" id="queue_button">Enter Queue</button>
+		<button type="button" id="clear_button">Clear Log</button>
+		<h3 id="player_list_header"></h3>
+		<ul id="player_list"></ul>
+		<h3 id="log_header">Log:</h3>
 		<ul id="log"></ul>
+	</div>
+	<br>
+	<div id="match_screen" style="visibility: hidden">
+		<button type="button" class="card_button" id="0" style="visibility: hidden; height:20px; width:75px"></button>
+		<button type="button" class="card_button" id="1" style="visibility: hidden; height:20px; width:75px"></button>
+		<button type="button" class="card_button" id="2" style="visibility: hidden; height:20px; width:75px"></button>
+		<button type="button" class="card_button" id="3" style="visibility: hidden; height:20px; width:75px"></button>
+		<button type="button" class="card_button" id="4" style="visibility: hidden; height:20px; width:75px"></button>
 	</div>
 
 	<script src="/socket.io/socket.io.js"></script>

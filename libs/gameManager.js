@@ -41,8 +41,8 @@ module.exports.listen = function(app) {
             leaveQueue(socket);
         });
 
-        socket.on("get user stats", function(socket) {
-            sendUserStats(socket);
+        socket.on("get user info", function(socket) {
+            sendUserInfo(socket);
         });
     });
     return io;
@@ -50,6 +50,15 @@ module.exports.listen = function(app) {
 
 
 //////////  Methods  \\\\\\\\\\
+function playerDisconnected(socket) {
+    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	var index = players.indexOf(findPlayerById(socket.id));
+	if (index > -1) {
+		players.splice(index, 1);
+	}
+	leaveQueue(socket);
+}
+
 function findPlayerByUsername(username) {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
     for (var i = 0; i < players.length; i++) {
@@ -80,15 +89,6 @@ function playerExists(username) {
     return false;
 }
 
-function playerDisconnected(socket) {
-    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var index = players.indexOf(findPlayerById(socket.id));
-	if (index > -1) {
-		players.splice(index, 1);
-	}
-	leaveQueue(socket);
-}
-
 function processUsername(desiredUsername, socket) {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
     var doesExist = playerExists(desiredUsername);
@@ -99,14 +99,15 @@ function processUsername(desiredUsername, socket) {
             elo: 1000,
             deck: defaultDeck
         });
-        sendGlobalStats();
+        sendStats();
+        sendUserInfo(socket);
     }
     socket.emit("username response", {
         exists: doesExist
     });
 }
 
-function sendGlobalStats() {
+function sendStats() {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
     stats = {
         onlinePlayers: []
@@ -117,8 +118,13 @@ function sendGlobalStats() {
     io.emit("global stats", stats);
 }
 
-function sendUserStats(socket) {
-    //Do something
+function sendUserInfo(socket) {
+    var user = findPlayerById(socket.id);
+    info = {
+    	username: user.username,
+    	elo: user.elo
+    };
+    socket.emit("user info", info);
 }
 
 
@@ -146,27 +152,30 @@ function leaveQueue(socket) {
 function createMatch(participents) {
     debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
     usernames = [];
-    var roomId = createId();
-    matches[roomId] = {
+    var matchId = createId();
+    matches[matchId] = {
         players: [],
         status: 0,
         modifier: 0,
         timer: undefined
     };
     for (var i = 0; i < participents.length; i++) {
-        matches[roomId].players.push({
+    	var playerObject = {
             username: participents[i].username,
             socketId: participents[i].socketId,
             elo: participents[i].elo,
-            deck: participents[i].deck,
+            deck: shuffleDeck(participents[i].deck),
             cards: [],
             points: []
-        });
+        }
+        var socket = io.sockets.connected[participents[i].socketId]
+        dealInitialCards(playerObject);
+        matches[matchId].players.push(playerObject);
         usernames.push(participents[i].username);
-        io.sockets.connected[participents[i].socketId].join(roomId);
+        socket.emit("initial hand", playerObject.cards);
+        socket.join(matchId);
     }
-    io.to(roomId).emit("enter match", usernames);
-    //Start Game or something
+    io.to(matchId).emit("enter match", usernames);
 }
 
 function createId() {
@@ -177,6 +186,34 @@ function createId() {
         id += charset.charAt(Math.floor(Math.random() * charset.length));
     }
     return id;
+}
+
+function dealInitialCards(playerObject) {
+    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+    for (var i = 0; i < 5; i++) {
+    	playerObject.cards[i] = drawCard(playerObject.deck);
+    }
+}
+
+function drawCard(deck) {
+    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+    if (deck.length > 0) {
+    	return deck.shift();
+	} else {
+		return false;
+	}
+}
+
+function shuffleDeck(deck) {
+    debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+    deckCopy = deck.slice();
+    for (var i = deckCopy.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = deckCopy[i];
+        deckCopy[i] = deckCopy[j];
+        deckCopy[j] = temp;
+    }
+    return deckCopy;
 }
 
 function func(args) {

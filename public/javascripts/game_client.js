@@ -11,12 +11,12 @@ socket.on("username response", function(response) {
     }
 });
 
-socket.on("global stats", function(stats) {
-    displayGlobalStats(stats);
+socket.on("user info", function(stats) {
+    displayUserInfo(stats);
 });
 
-socket.on("user stats", function(stats) {
-    displayUserStats(stats);
+socket.on("stats", function(stats) {
+    displayStats(stats);
 });
 
 socket.on("enter match", function(usernames) {
@@ -31,62 +31,100 @@ socket.on("queue left", function() {
 	queueLeft();
 });
 
-//////////  jQuery Events  \\\\\\\\\\
-$("#queueButton").click(enterQueue);
+socket.on("initial hand", function(cards) {
+    displayInitialHand(cards);
+});
 
-$("#clearButton").click(clearLog);
+//////////  jQuery Events  \\\\\\\\\\
+$("#queue_button").click(enterQueue);
+
+$("#clear_button").click(clearLog);
+
+$(".card_button").click(function() {
+    playCard(this.id);
+});
 
 
 //////////  Methods  \\\\\\\\\\
 function submitUsername(desiredUsername) {
+    console.log("%s", arguments.callee.name);
     socket.emit("username submit", desiredUsername);
 }
 
 function getStats() {
+    console.log("%s", arguments.callee.name);
     socket.emit("get stats");
 }
 
-function displayGlobalStats(stats) {
-    $("#playerListHeader").text(stats.onlinePlayers.length + " players online:");
-    $("#playerList").empty();
+function displayStats(stats) {
+    console.log("%s", arguments.callee.name);
+    $("#player_list_header").text(stats.onlinePlayers.length + " players online:");
+    $("#player_list").empty();
     for (var i = 0; i < stats.onlinePlayers.length; i++) {
-        $("#playerList").append("<li>" + stats.onlinePlayers[i] + "</li>");
+        $("#player_list").append("<li>" + stats.onlinePlayers[i] + "</li>");
     }
 }
 
-function displayUserStats(stats) {
-    //Do something
+function getUserInfo() {
+    console.log("%s", arguments.callee.name);
+	socket.emit("get user info");
+}
+
+function displayUserInfo(info) {
+    console.log("%s", arguments.callee.name);
+    $("#user_info").text("Hello " + info.username + ", you have an ELO of " + info.elo + ".");
 }
 
 function displayMainScreen() {
-    $("#mainScreen").css("visibility", "visible");
+    console.log("%s", arguments.callee.name);
+    $("#main_screen").css("visibility", "visible");
 }
 
 function enterQueue() {
+    console.log("%s", arguments.callee.name);
 	socket.emit("enter queue");
-	$("#queueButton").html("Leave Queue");
-	$("#queueButton").off("click").on("click", leaveQueue);
+	$("#queue_button").html("Leave Queue");
+	$("#queue_button").off("click").on("click", leaveQueue);
 }
 
 function leaveQueue() {
+    console.log("%s", arguments.callee.name);
 	socket.emit("leave queue");
-	$("#queueButton").html("Enter Queue");
-	$("#queueButton").off("click").on("click", enterQueue);
+	$("#queue_button").html("Enter Queue");
+	$("#queue_button").off("click").on("click", enterQueue);
 }
 
 function queueEntered() {
+    console.log("%s", arguments.callee.name);
     $("#log").append("<li>" + "Entered the queue. Waiting for an opponent..." + "</li>");
 }
 
 function queueLeft() {
+    console.log("%s", arguments.callee.name);
     $("#log").append("<li>" + "Left the queue." + "</li>");
 }
 
 function prepareForMatch(usernames) {
+    console.log("%s", arguments.callee.name);
     $("#log").append("<li>" + "Match started " + usernames.join(" vs ") + "</li>");
-    $("#matchScreen").css("visibility", "visible");
+    $("#match_screen").css("visibility", "visible");
 }
 
 function clearLog() {
+    console.log("%s", arguments.callee.name);
 	$("#log").empty();
+}
+
+function displayInitialHand(cards) {
+    console.log("%s", arguments.callee.name);
+    $(".card_button").css("visibility", "visible");
+    for (var i = 0; i < cards.length; i++) {
+        $(".card_button#" + i).html(cards[i].type + " " + cards[i].number);
+    }
+}
+
+function playCard(index) {
+    console.log("%s", arguments.callee.name);
+    socket.emit("play card", index);
+    $(".card_button#" + index).html("");
 }
