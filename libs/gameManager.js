@@ -140,7 +140,7 @@ function createMatch(participents) {
         io.sockets.connected[participents[i].socketId].join(roomId);
     }
     io.to(roomId).emit("enter match", usernames);
-    //Do something
+    //Start Game or something
 }
 
 function createId() {
