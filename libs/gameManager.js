@@ -1,7 +1,6 @@
 var debug = require("debug")("game");
 var socketio = require("socket.io");
 var dbm = require("../libs/databaseManager");
-var elo = require("../libs/elo");
 
 var players = [];
 var queue = [];
@@ -111,7 +110,8 @@ function processUsername(socket, desiredUsername) {
 		sendPlayerInfo(socket);
 	}
 	socket.emit("username response", {
-		exists: doesExist
+		exists: doesExist,
+		username: desiredUsername
 	});
 }
 
@@ -176,7 +176,11 @@ function createMatch(participents) {
 			deck: shuffleDeck(participents[i].deck),
 			cards: [],
 			currentCard: undefined,
-			points: []
+			points: {
+				fire: [],
+				ice: [],
+				water: []
+			}
 		}
 		dealInitialCards(playerObject);
 		match.players.push(playerObject);
@@ -245,9 +249,14 @@ function playCard(socket, index) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var result = findMatchBySocketId(socket.id, true);
 	var match = result[0];
-	var user = result[1];
-	user.currentCard = user.cards[index];
-	user.cards[index] = undefined;
+	var player = result[1];
+	player.currentCard = player.cards[index];
+	player.cards[index] = undefined;
+	for (var i = 0; i < match.players.length; i++) {
+		if (match.players[i].socket.id !== player.socket.id) {
+			match.players[i].socket.emit("unknown card played", player.username);
+		}
+	}
 	if (currentCardsReady(match)) {
 		fightCards(match);
 	}
@@ -314,18 +323,29 @@ function fightCards(match) {
 	}
 }
 
-//winner and looser parameter names only applicable is not tied.
+//winner and loser parameter names only applicable is not tied.
 function processResults(match, tied, winner, loser) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	if (!tied) {
-		
-	} else {
-
+		winner.points[winner.currentCard.type].push(winner.currentCard);
 	}
+	io.to(match.matchId).emit("fight result", {
+		tied: tied,
+		winner: {
+			username: winner.username,
+			card: winner.currentCard,
+			points: winner.points
+		},
+		loser: {
+			username: loser.username,
+			card: loser.currentCard,
+			points: loser.points
+		}
+	});
 	newTurn(match);
 }
 
-function checkPoints(user) {
+function checkPoints(player) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	
 }

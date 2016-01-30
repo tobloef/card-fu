@@ -1,10 +1,12 @@
 var socket = io();
+var username;
 
 submitUsername(prompt("Please enter a username:"));
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("username response", function(response) {
 	if (!response.exists) {
+		username = response.username
 		displayMainScreen();
 	} else {
 		submitUsername(prompt("Username already exists, please enter a different one:"));
@@ -33,6 +35,14 @@ socket.on("queue left", function() {
 
 socket.on("initial hand", function(cards) {
 	displayInitialHand(cards);
+});
+
+socket.on("unknown card played", function(username) {
+	unknownCardPlayed(username);
+});
+
+socket.on("fight result", function(result) {
+	displayResult(result);
 });
 
 //////////  jQuery Events  \\\\\\\\\\
@@ -127,4 +137,23 @@ function playCard(index) {
 	console.log("%s", arguments.callee.name);
 	socket.emit("play card", index);
 	$(".card_button#" + index).html("");
+}
+
+function unknownCardPlayed(username) {
+	$("#log").append("<li>" + username + " played a card!" + "</li>");
+}
+
+function displayResult(result) {
+	if (result.winner.username === username) {
+		you = result.winner;
+		opponent = result.loser;
+		winner = "You";
+	} else if (result.loser.username === username) {
+		you = result.loser;
+		opponent = result.winner;
+		winner = opponent.username;
+	}
+	$("#log").append("<li>" + "Both players has played a card, the result was:" + "</li>");
+	$("#log").append("<li>" + "Your " + you.card.type + " " + you.card.number + " vs " + opponent.username + "'s " + opponent.card.type + " " + opponent.card.number + "</li>");
+	$("#log").append("<li>" + winner + " win this round." + "</li>");
 }
