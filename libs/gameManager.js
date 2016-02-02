@@ -392,9 +392,22 @@ function endMatch(match, winner, loser, reason) {
 	}
 }
 
-function cardTypeToIndex(type) {
+function updateElo(winner, loser) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	return types.indexOf(type)
+	winner = findPlayerById(winner.socket.id);
+	loser = findPlayerById(loser.socket.id);
+	winner.elo += calculateNewElo(winner, loser, 1);
+	loser.elo += calculateNewElo(loser, winner, 0);
+	sendPlayerInfo(winner.socket);
+	sendPlayerInfo(loser.socket);
+}
+
+function calculateEloGained(player, opponent, outcome) {
+	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	difference = opponent.elo - player.elo;
+	winChance = 1/(1 + Math.pow(10, difference/400));
+	eloGained = 32 * (outcome - winChance);
+	return eloGained;
 }
 
 function func(args) {
