@@ -42,13 +42,16 @@ socket.on("card drawn", function(card) {
 	cardDrawn(card);
 });
 
-
 socket.on("unknown card played", function(username) {
 	unknownCardPlayed(username);
 });
 
 socket.on("fight result", function(result) {
 	displayResult(result);
+});
+
+socket.on("end match", function(winner, loser, reason) {
+	matchEnded(winner, loser, reason);
 });
 
 //////////  jQuery Events  \\\\\\\\\\
@@ -83,7 +86,7 @@ function getPlayerInfo() {
 }
 
 function displayPlayerInfo(info) {
-	$("#user_info").text("Hello " + info.username + ", you have an ELO of " + info.elo + ".");
+	$("#user_info").text("Hello " + info.username + ", you have an ELO of " + Math.round(info.elo) + ".");
 }
 
 function displayMainScreen() {
@@ -143,6 +146,9 @@ function unknownCardPlayed(username) {
 }
 
 function displayResult(result) {
+	var you;
+	var opponent;
+	var winner;
 	if (result.winner.username === username) {
 		you = result.winner;
 		opponent = result.loser;
@@ -151,21 +157,61 @@ function displayResult(result) {
 		you = result.loser;
 		opponent = result.winner;
 		winner = opponent.username;
+	} else {
+		console.log(result.winner.username);
+		console.log(result.loser.username);
+		console.log(username);
 	}
 	$("#log").append("<li>" + "You have both played a card, the result was:" + "</li>");
 	$("#log").append("<li>" + "Your " + you.card.color + " " + you.card.type + " " + you.card.number + " vs " + opponent.username + "'s " + you.card.color + " " + opponent.card.type + " " + opponent.card.number + "</li>");
 	if (!result.tied) {
 		$("#log").append("<li>" + winner + " win this round." + "</li>");
 	} else {
-		$("#log").append("<li>" + "You tied!" + "</li>");
+		$("#log").append("<li>" + "You got tied this round!" + "</li>");
 	}
+	canPlayCard = true;
 }
 
 function leaveMatch() {
 	if (confirm("Are you sure you want to leave the match? You will automatically lose the game.")) {
 		socket.emit("leave match");
-		clearLog();
-		$("#queue_button").html("Enter Queue");
-		$("#queue_button").off("click").on("click", enterQueue);
+		resetMatchScreen();
 	}
+}
+
+function matchEnded(winner, loser, reason) {
+	if (username === winner) {
+		if (reason === "player left") {
+			$("#log").append("<li>" + "Your opponent left the match. You win!" + "</li>");
+		} else if (reason === "player forfeit") {
+			$("#log").append("<li>" + "Your opponent forfeited the match. You win!" + "</li>");
+		} else {
+			winningSet = "";
+			for (var i = 0; i < reason.length; i++) {
+				winningSet += "<br>" + reason[i].color + " " + reason[i].type + " " + reason[i].number;
+			}
+			$("#log").append("<li>" + "You won the game! Your wining set was:" + winningSet + "</li>");
+		}
+	} else {
+		if (reason === "player left") {
+			$("#log").append("<li>" + "You left the match and lost." + "</li>");
+		} else if (reason === "player forfeit") {
+			$("#log").append("<li>" + "You forfeited the match and lost." + "</li>");
+		} else {
+			winningSet = "";
+			for (var i = 0; i < reason.length; i++) {
+				winningSet += "<br>" + reason[i].color + " " + reason[i].type + " " + reason[i].number;
+			}
+			$("#log").append("<li>" + "You lost the match! Your opponent's wining set was:" + winningSet + "</li>");
+		}
+	}
+	resetMatchScreen();
+}
+
+function resetMatchScreen() {
+	$("#match_screen").css("visibility", "hidden");
+	$("#queue_button").html("Enter Queue");
+	$("#queue_button").off("click").on("click", enterQueue);
+	$(".card_button").css("visibility", "hidden");
+	$(".card_button#" + i).html("");
 }

@@ -62,7 +62,7 @@ module.exports.listen = function(app) {
 
 //////////  Methods  \\\\\\\\\\
 function playerDisconnected(socket) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var index = players.indexOf(findPlayerById(socket.id));
 	if (index > -1) {
 		players.splice(index, 1);
@@ -73,7 +73,7 @@ function playerDisconnected(socket) {
 }
 
 function findPlayerByUsername(username) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].username === username) {
 			return players[i];
@@ -83,7 +83,7 @@ function findPlayerByUsername(username) {
 }
 
 function findPlayerById(socketId) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].socket.id === socketId) {
 			return players[i];
@@ -93,7 +93,7 @@ function findPlayerById(socketId) {
 }
 
 function playerExists(username) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].username.toLowerCase() === username.toLowerCase()) {
 			return true;
@@ -103,7 +103,7 @@ function playerExists(username) {
 }
 
 function processUsername(socket, desiredUsername) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var doesExist = playerExists(desiredUsername);
 	if (!doesExist) {
 		players.push({
@@ -122,7 +122,7 @@ function processUsername(socket, desiredUsername) {
 }
 
 function sendStats() {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var stats = {
 		onlinePlayers: []
 	};
@@ -143,7 +143,7 @@ function sendPlayerInfo(socket) {
 
 
 function enterQueue(socket) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var player = findPlayerById(socket.id);
 	if (queue.indexOf(player) === -1) {
 		queue.push(player);
@@ -155,7 +155,7 @@ function enterQueue(socket) {
 }
 
 function leaveQueue(socket) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var index = queue.indexOf(findPlayerById(socket.id));
 	if (index > -1) {
 		queue.splice(index, 1);
@@ -164,7 +164,7 @@ function leaveQueue(socket) {
 }
 
 function createMatch(participents) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var usernames = [];
 	var id = createId();
 	var match = {
@@ -198,7 +198,7 @@ function createMatch(participents) {
 }
 
 function createId() {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var id = "";
 	var charset = "ABCDEFGHIJKLMNOPQRSTUCWXYZabcdefghijklmnopqrtsuvwxyz1234567890";
 	for (var i = 0; i < 16; i++) {
@@ -208,19 +208,19 @@ function createId() {
 }
 
 function dealInitialCards(playerObject) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < 5; i++) {
 		playerObject.cards[i] = drawCard(playerObject.deck);
 	}
 }
 
 function drawCard(deck) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	return deck.shift();
 }
 
 function shuffleDeck(deck) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var deckCopy = deck.slice();
 	for (var i = deckCopy.length - 1; i > 0; i--) {
 		var j = Math.floor(Math.random() * (i + 1));
@@ -232,7 +232,7 @@ function shuffleDeck(deck) {
 }
 
 function findMatchBySocketId(socketId) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < matches.length; i++) {
 		for (var j = 0; j < matches[i].players.length; j++) {
 			if (matches[i].players[j].socket.id === socketId) {
@@ -243,27 +243,29 @@ function findMatchBySocketId(socketId) {
 }
 
 function playCard(socket, index) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var match = findMatchBySocketId(socket.id);
-	var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
-	if (!player.curCard) {
-		player.curCard = player.cards[index];
-		player.cards[index] = undefined;
-		var opponent = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
-		if (curCardsReady(match)) {
-			fightCards(match);
+	if (match) {
+		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
+		if (!player.curCard) {
+			player.curCard = player.cards[index];
+			player.cards[index] = undefined;
+			var opponent = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
+			if (curCardsReady(match)) {
+				fightCards(match);
+			}
 		}
 	}
 }
 
 function curCardsReady(match) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	return (match.players[0].curCard && match.players[1].curCard);
 }
 
 //This function is hell, make it better
 function fightCards(match) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var p1 = match.players[0];
 	var p2 = match.players[1];
 
@@ -274,7 +276,7 @@ function fightCards(match) {
 			} else if (p1.curCard.number < p2.curCard.number) {
 				processRound(match, false, p2);
 			} else {
-				processRound(match, true);
+				processRound(match, true, p1);
 			}
 		} else if (p2.curCard.type === "ice") {
 			processRound(match, false, p1);
@@ -290,7 +292,7 @@ function fightCards(match) {
 			} else if (p1.curCard.number < p2.curCard.number) {
 				processRound(match, false, p2);
 			} else {
-				processRound(match, true);
+				processRound(match, true, p1);
 			}
 		} else if (p2.curCard.type === "water") {
 			processRound(match, false, p1);
@@ -306,7 +308,7 @@ function fightCards(match) {
 			} else if (p1.curCard.number < p2.curCard.number) {
 				processRound(match, false, p2);
 			} else {
-				processRound(match, true);
+				processRound(match, true, p1);
 			}
 		}
 	}
@@ -314,10 +316,10 @@ function fightCards(match) {
 
 //winner and loser parameter names only applicable is not tied.
 function processRound(match, tied, winner) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var loser = match.players[players[0] !== winner ? 0 : 1];
+	debug("%s()", arguments.callee.name);
+	var loser = match.players[match.players[0] !== winner ? 0 : 1];
 	if (!tied) {
-		winner.points[types.indexOf(winner.curCard.type)].push(winner.curCard.color);
+		winner.points[types.indexOf(winner.curCard.type)].push(winner.curCard);
 	}
 	io.to(match.matchId).emit("fight result", {
 		tied: tied,
@@ -335,11 +337,13 @@ function processRound(match, tied, winner) {
 	var set = checkForSet(winner);
 	if (set) {
 		endMatch(match, winner, loser, set);
+	} else {
+		nextRound(match);
 	}
 }
 
 function nextRound(match) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < match.players.length; i++) {
 		match.players[i].curCard = undefined;
 		for (var j = 0; j < match.players[i].cards.length; j++) {
@@ -352,19 +356,19 @@ function nextRound(match) {
 }
 
 function checkForSet(player) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	for (var i = 0; i < player.points.length; i++) {
 		if (player.points[i].length === 3) {
 			return player.points[i];
 		}
 	}
-	for (var i = 0; i < type[0].colors.length; i++) {
-		for (var j = 0; j < type[1].colors.length; j++) {
-			for (var k = 0; k < type[2].colors.length; k++) {
-				if (type[0].colors[i] !== type[1].colors[j] &&
-					type[0].colors[i] !== type[2].colors[k] &&
-					type[1].colors[j] !== type[2].colors[k]) {
-					return [type[0].colors[i], type[1].colors[j], type[2].colors[k]];
+	for (var i = 0; i < player.points[0].length; i++) {
+		for (var j = 0; j < player.points[1].length; j++) {
+			for (var k = 0; k < player.points[2].length; k++) {
+				if (player.points[0][i].color !== player.points[1][j].color &&
+					player.points[0][i].color !== player.points[2][k].color &&
+					player.points[1][j].color !== player.points[2][k].color) {
+					return [player.points[0][i], player.points[1][j], player.points[2][k]];
 				}
 			}
 		}
@@ -373,7 +377,7 @@ function checkForSet(player) {
 }
 
 function leaveMatch(socket) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
 		var winner = match.players[match.players[0].id === socket.id ? 0 : 1];
@@ -383,8 +387,8 @@ function leaveMatch(socket) {
 }
 
 function endMatch(match, winner, loser, reason) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	io.to(match.matchId).emit("end match", reason);
+	debug("%s()", arguments.callee.name);
+	io.to(match.matchId).emit("end match", winner.username, loser.username, reason);
 	updateElo(winner, loser);
 	var index = matches.indexOf(match);
 	if (index > -1) {
@@ -393,17 +397,17 @@ function endMatch(match, winner, loser, reason) {
 }
 
 function updateElo(winner, loser) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	winner = findPlayerById(winner.socket.id);
 	loser = findPlayerById(loser.socket.id);
-	winner.elo += calculateNewElo(winner, loser, 1);
-	loser.elo += calculateNewElo(loser, winner, 0);
+	winner.elo += calculateEloGained(winner, loser, 1);
+	loser.elo += calculateEloGained(loser, winner, 0);
 	sendPlayerInfo(winner.socket);
 	sendPlayerInfo(loser.socket);
 }
 
 function calculateEloGained(player, opponent, outcome) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 	difference = opponent.elo - player.elo;
 	winChance = 1/(1 + Math.pow(10, difference/400));
 	eloGained = 32 * (outcome - winChance);
@@ -411,6 +415,6 @@ function calculateEloGained(player, opponent, outcome) {
 }
 
 function func(args) {
-	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	debug("%s()", arguments.callee.name);
 
 }
