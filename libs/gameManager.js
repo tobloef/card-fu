@@ -6,10 +6,10 @@ var players = [];
 var queue = [];
 var matches = [];
 
-types = ["fire", "water", "ice"];
-numbers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
-colors = ["yellow", "orange", "green", "blue", "red", "purple"];
-c = 0;
+var types = ["fire", "water", "ice"];
+var numbers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
+var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
+var c = 0;
 
 defaultDeck = [];
 for (var t = 0; t < types.length; t++) {
@@ -17,7 +17,7 @@ for (var t = 0; t < types.length; t++) {
 		defaultDeck.push({
 			type: types[t],
 			number: numbers[n],
-			color: colors[c++%6]
+			color: colors[c++ % 6]
 		});
 	}
 }
@@ -123,7 +123,7 @@ function processUsername(socket, desiredUsername) {
 
 function sendStats() {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	stats = {
+	var stats = {
 		onlinePlayers: []
 	};
 	for (var i = 0; i < players.length; i++) {
@@ -134,7 +134,7 @@ function sendStats() {
 
 function sendPlayerInfo(socket) {
 	var player = findPlayerById(socket.id);
-	info = {
+	var info = {
 		username: player.username,
 		elo: player.elo
 	};
@@ -165,9 +165,9 @@ function leaveQueue(socket) {
 
 function createMatch(participents) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	usernames = [];
+	var usernames = [];
 	var id = createId();
-	match = {
+	var match = {
 		matchId: id,
 		players: [],
 		status: 0,
@@ -178,16 +178,15 @@ function createMatch(participents) {
 		var playerObject = {
 			username: participents[i].username,
 			socket: participents[i].socket,
-			elo: participents[i].elo,
 			deck: shuffleDeck(participents[i].deck),
 			cards: [],
 			curCard: undefined,
-			points: {
-				fire: [],
-				ice: [],
-				water: []
-			}
-		}
+			points: [
+				[],
+				[],
+				[]
+			]
+		};
 		dealInitialCards(playerObject);
 		match.players.push(playerObject);
 		usernames.push(participents[i].username);
@@ -222,7 +221,7 @@ function drawCard(deck) {
 
 function shuffleDeck(deck) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	deckCopy = deck.slice();
+	var deckCopy = deck.slice();
 	for (var i = deckCopy.length - 1; i > 0; i--) {
 		var j = Math.floor(Math.random() * (i + 1));
 		var temp = deckCopy[i];
@@ -246,11 +245,11 @@ function findMatchBySocketId(socketId) {
 function playCard(socket, index) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var match = findMatchBySocketId(socket.id);
-	player = match.players[match.players[0].socket.id === socket.id ? 0 : 1]
+	var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
 	if (!player.curCard) {
 		player.curCard = player.cards[index];
 		player.cards[index] = undefined;
-		opponent = match.players[match.players[0].socket.id !== socket.id ? 0 : 1]
+		var opponent = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
 		if (curCardsReady(match)) {
 			fightCards(match);
 		}
@@ -316,9 +315,9 @@ function fightCards(match) {
 //winner and loser parameter names only applicable is not tied.
 function processRound(match, tied, winner) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	loser = match.players[players[0] !== winner ? 0 : 1];
+	var loser = match.players[players[0] !== winner ? 0 : 1];
 	if (!tied) {
-		winner.points[winner.curCard.type].push(winner.curCard.color);
+		winner.points[types.indexOf(winner.curCard.type)].push(winner.curCard.color);
 	}
 	io.to(match.matchId).emit("fight result", {
 		tied: tied,
@@ -333,9 +332,9 @@ function processRound(match, tied, winner) {
 			points: loser.points
 		}
 	});
-	var setStatus = checkForSet(winner);
-	if (setStatus.hasWon) {
-		endMatch(match, winner, setStatus.set);
+	var set = checkForSet(winner);
+	if (set) {
+		endMatch(match, winner, loser, set);
 	}
 }
 
@@ -354,19 +353,49 @@ function nextRound(match) {
 
 function checkForSet(player) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	
+	for (var i = 0; i < player.points.length; i++) {
+		if (player.points[i].length === 3) {
+			return player.points[i];
+		}
+	}
+	for (var i = 0; i < type[0].colors.length; i++) {
+		for (var j = 0; j < type[1].colors.length; j++) {
+			for (var k = 0; k < type[2].colors.length; k++) {
+				if (type[0].colors[i] !== type[1].colors[j] &&
+					type[0].colors[i] !== type[2].colors[k] &&
+					type[1].colors[j] !== type[2].colors[k]) {
+					return [type[0].colors[i], type[1].colors[j], type[2].colors[k]];
+				}
+			}
+		}
+	}
+	return false;
 }
 
 function leaveMatch(socket) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-
+	var match = findMatchBySocketId(socket.id);
+	if (match) {
+		var winner = match.players[match.players[0].id === socket.id ? 0 : 1];
+		var loser = match.players[match.players[0].id !== socket.id ? 0 : 1];
+		endMatch(match, winner, loser, "player left");
+	}
 }
 
 function endMatch(match, winner, loser, reason) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-
+	io.to(match.matchId).emit("end match", reason);
+	updateElo(winner, loser);
+	var index = matches.indexOf(match);
+	if (index > -1) {
+		matches.splice(index, 1);
+	}
 }
 
+function cardTypeToIndex(type) {
+	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	return types.indexOf(type)
+}
 
 function func(args) {
 	debug("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());

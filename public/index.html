@@ -10,18 +10,17 @@
 	<div id="main_screen" style="visibility: hidden">
 		<button type="button" id="queue_button">Enter Queue</button>
 		<button type="button" id="clear_button">Clear Log</button>
+		<div id="match_screen" style="visibility: hidden">
+			<button type="button" class="card_button" id="0" style="visibility: hidden; height:40px; width:75px"></button>
+			<button type="button" class="card_button" id="1" style="visibility: hidden; height:40px; width:75px"></button>
+			<button type="button" class="card_button" id="2" style="visibility: hidden; height:40px; width:75px"></button>
+			<button type="button" class="card_button" id="3" style="visibility: hidden; height:40px; width:75px"></button>
+			<button type="button" class="card_button" id="4" style="visibility: hidden; height:40px; width:75px"></button>
+		</div>
 		<h3 id="player_list_header"></h3>
 		<ul id="player_list"></ul>
 		<h3 id="log_header">Log:</h3>
 		<ul id="log"></ul>
-	</div>
-	<br>
-	<div id="match_screen" style="visibility: hidden">
-		<button type="button" class="card_button" id="0" style="visibility: hidden; height:20px; width:75px"></button>
-		<button type="button" class="card_button" id="1" style="visibility: hidden; height:20px; width:75px"></button>
-		<button type="button" class="card_button" id="2" style="visibility: hidden; height:20px; width:75px"></button>
-		<button type="button" class="card_button" id="3" style="visibility: hidden; height:20px; width:75px"></button>
-		<button type="button" class="card_button" id="4" style="visibility: hidden; height:20px; width:75px"></button>
 	</div>
 
 	<script src="/socket.io/socket.io.js"></script>

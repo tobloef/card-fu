@@ -124,7 +124,7 @@ function clearLog() {
 function updateCards(cards) {
 	$(".card_button").css("visibility", "visible");
 	for (var i = 0; i < cards.length; i++) {
-		$(".card_button#" + i).html(cards[i].color + " " + cards[i].type + " " + cards[i].number);
+		$(".card_button#" + i).html(cards[i].color + "<br> " + cards[i].type + " " + cards[i].number);
 	}
 	canPlayCard = true;
 }
