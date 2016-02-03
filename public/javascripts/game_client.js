@@ -10,7 +10,7 @@ socket.on("username response", function(response) {
 		username = response.username
 		displayMainScreen();
 	} else {
-		submitUsername(prompt("Username already exists, please enter a different one:"));
+		submitUsername(prompt("Username either already exists or is invalid. Please enter a different one:"));
 	}
 });
 
@@ -213,5 +213,5 @@ function resetMatchScreen() {
 	$("#queue_button").html("Enter Queue");
 	$("#queue_button").off("click").on("click", enterQueue);
 	$(".card_button").css("visibility", "hidden");
-	$(".card_button#" + i).html("");
+	$(".card_button").html("");
 }

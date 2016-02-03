@@ -102,10 +102,16 @@ function playerExists(username) {
 	return false;
 }
 
+function usernameIsValid(username) {
+	debug("%s()", arguments.callee.name);
+	return /^[a-zA-Z0-9()]+$/.test(username);
+}
+
 function processUsername(socket, desiredUsername) {
 	debug("%s()", arguments.callee.name);
 	var doesExist = playerExists(desiredUsername);
-	if (!doesExist) {
+	var isValid = usernameIsValid(desiredUsername);
+	if (!doesExist && isValid) {
 		players.push({
 			username: desiredUsername,
 			socket: socket,
@@ -116,7 +122,7 @@ function processUsername(socket, desiredUsername) {
 		sendPlayerInfo(socket);
 	}
 	socket.emit("username response", {
-		exists: doesExist,
+		exists: (doesExist || !isValid),
 		username: desiredUsername
 	});
 }
@@ -380,8 +386,8 @@ function leaveMatch(socket) {
 	debug("%s()", arguments.callee.name);
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
-		var winner = match.players[match.players[0].id === socket.id ? 0 : 1];
-		var loser = match.players[match.players[0].id !== socket.id ? 0 : 1];
+		var winner = match.players[match.players[0].id !== socket.id ? 0 : 1];
+		var loser = match.players[match.players[0].id === socket.id ? 0 : 1];
 		endMatch(match, winner, loser, "player left");
 	}
 }
