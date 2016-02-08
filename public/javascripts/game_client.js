@@ -2,15 +2,15 @@ var socket = io();
 var username;
 var canPlayCard = false;
 
-submitUsername(prompt("Please enter a username:"));
+submitUsername(prompt("Please enter a username between 3 and 16 characters.\nOnly letters, number and underscore is allowed."));
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("username response", function(response) {
-	if (!response.exists) {
+	if (response.success) {
 		username = response.username
 		displayMainScreen();
 	} else {
-		submitUsername(prompt("Username either already exists or is invalid. Please enter a different one:"));
+		submitUsername(prompt("Username either already exists or is invalid. Please enter a different one."));
 	}
 });
 
@@ -42,8 +42,8 @@ socket.on("card drawn", function(card) {
 	cardDrawn(card);
 });
 
-socket.on("unknown card played", function(username) {
-	unknownCardPlayed(username);
+socket.on("unknown card played", function() {
+	unknownCardPlayed();
 });
 
 socket.on("fight result", function(result) {
@@ -135,14 +135,14 @@ function updateCards(cards) {
 function playCard(index) {
 	if (canPlayCard) {
 		socket.emit("play card", index);
-		$("#log").append("<li>" + "You played card " + $(".card_button#" + index).html() + "</li>");
+		$("#log").append("<li>" + "You played card " + $(".card_button#" + index).html().replace("<br>", "") + "</li>");
 		$(".card_button#" + index).html("");
 		canPlayCard = false;
 	}
 }
 
 function unknownCardPlayed(username) {
-	$("#log").append("<li>" + username + " played a card!" + "</li>");
+	$("#log").append("<li>" + "Your opponent played a card!" + "</li>");
 }
 
 function displayResult(result) {
@@ -157,10 +157,6 @@ function displayResult(result) {
 		you = result.loser;
 		opponent = result.winner;
 		winner = opponent.username;
-	} else {
-		console.log(result.winner.username);
-		console.log(result.loser.username);
-		console.log(username);
 	}
 	$("#log").append("<li>" + "You have both played a card, the result was:" + "</li>");
 	$("#log").append("<li>" + "Your " + you.card.color + " " + you.card.type + " " + you.card.number + " vs " + opponent.username + "'s " + you.card.color + " " + opponent.card.type + " " + opponent.card.number + "</li>");
@@ -214,4 +210,8 @@ function resetMatchScreen() {
 	$("#queue_button").off("click").on("click", enterQueue);
 	$(".card_button").css("visibility", "hidden");
 	$(".card_button").html("");
+}
+
+function updatePoints(points) {
+	
 }
