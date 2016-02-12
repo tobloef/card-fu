@@ -7,7 +7,7 @@ var queue = [];
 var matches = [];
 
 var types = ["fire", "water", "ice"];
-var numbers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
+var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
 var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
 
 var logFull = true;
@@ -53,7 +53,7 @@ module.exports.listen = function(app) {
 
 //////////  Methods  \\\\\\\\\\
 function playerDisconnected(socket) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var player = findPlayerById(socket.id);
 	var index = players.indexOf(player);
 	if (index > -1) {
@@ -68,7 +68,7 @@ function playerDisconnected(socket) {
 }
 
 function findPlayerByUsername(username) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].username === username) {
 			if (logFriendly) debug("Found player with username %s.", username);
@@ -80,7 +80,7 @@ function findPlayerByUsername(username) {
 }
 
 function findPlayerById(socketId) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].socket.id === socketId) {
 			if (logFriendly) debug("Found player with id %s.", socketId);
@@ -92,7 +92,7 @@ function findPlayerById(socketId) {
 }
 
 function playerExists(username) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].username.toLowerCase() === username.toLowerCase()) {
 			if (logFriendly) debug("Player with username %s does exists.", username);
@@ -104,14 +104,14 @@ function playerExists(username) {
 }
 
 function usernameIsValid(username) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var isValid = !(username === undefined || username === null) && /^[a-z0-9_]{3,16}$/i.test(username);
 	if (logFriendly) debug("The username %s is %svalid.", username, (isValid) ? "" : "not ");
 	return isValid;
 }
 
 function processUsername(socket, desiredUsername) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	if (usernameIsValid(desiredUsername)) {
 		if (!playerExists(desiredUsername)) {
 			if (logFriendly) debug("Adding player %s to player list.", desiredUsername);
@@ -136,7 +136,7 @@ function processUsername(socket, desiredUsername) {
 }
 
 function sendStats() {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var stats = {
 		onlinePlayers: []
 	};
@@ -148,7 +148,7 @@ function sendStats() {
 }
 
 function sendPlayerInfo(socket) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var player = findPlayerById(socket.id);
 	var info = {
 		username: player.username,
@@ -160,7 +160,7 @@ function sendPlayerInfo(socket) {
 
 
 function enterQueue(socket) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var player = findPlayerById(socket.id);
 	if (queue.indexOf(player) === -1) {
 		queue.push(player);
@@ -176,7 +176,7 @@ function enterQueue(socket) {
 }
 
 function leaveQueue(socket) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var player = findPlayerById(socket.id);
 	var index = queue.indexOf(player);
 	if (index > -1) {
@@ -189,7 +189,7 @@ function leaveQueue(socket) {
 }
 
 function createMatch(participants) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var usernames = [];
 	var id = createId();
 	if (logFriendly) debug("Creating match with id %s.", id);
@@ -225,7 +225,7 @@ function createMatch(participants) {
 }
 
 function createId() {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var id = "";
 	var charset = "ABCDEFGHIJKLMNOPQRSTUCWXYZabcdefghijklmnopqrtsuvwxyz1234567890";
 	for (var i = 0; i < 16; i++) {
@@ -236,7 +236,7 @@ function createId() {
 }
 
 function dealInitialCards(playerObject) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < 5; i++) {
 		playerObject.cards[i] = drawCard(playerObject.deck);
 		if (logFriendly) debug("Gave player %s a %s.", playerObject.username, JSON.stringify(playerObject.cards[i]));
@@ -244,12 +244,12 @@ function dealInitialCards(playerObject) {
 }
 
 function drawCard(deck) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	return deck.shift();
 }
 
 function shuffleDeck(deck) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var deckCopy = deck.slice();
 	for (var i = deckCopy.length - 1; i > 0; i--) {
 		var j = Math.floor(Math.random() * (i + 1));
@@ -262,7 +262,7 @@ function shuffleDeck(deck) {
 }
 
 function findMatchBySocketId(socketId) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < matches.length; i++) {
 		for (var j = 0; j < matches[i].players.length; j++) {
 			if (matches[i].players[j].socket.id === socketId) {
@@ -276,7 +276,7 @@ function findMatchBySocketId(socketId) {
 }
 
 function playCard(socket, index) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
 		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
@@ -303,7 +303,7 @@ function playCard(socket, index) {
 }
 
 function curCardsReady(match) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var isReady = (match.players[0].curCard && match.players[1].curCard)
 	if (logFriendly && isReady) debug("Both players in match %s have played their cards.", match.matchId);
 	return isReady;
@@ -311,7 +311,7 @@ function curCardsReady(match) {
 
 //This function should probably be shorter
 function fightCards(match) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var p1 = match.players[0];
 	var p2 = match.players[1];
 
@@ -319,9 +319,9 @@ function fightCards(match) {
 
 	if (p1.curCard.type === "fire") {
 		if (p2.curCard.type === "fire") {
-			if (p1.curCard.number > p2.curCard.number) {
+			if (p1.curCard.power > p2.curCard.power) {
 				processRound(match, false, p1);
-			} else if (p1.curCard.number < p2.curCard.number) {
+			} else if (p1.curCard.power < p2.curCard.power) {
 				processRound(match, false, p2);
 			} else {
 				processRound(match, true, p1);
@@ -335,9 +335,9 @@ function fightCards(match) {
 		if (p2.curCard.type === "fire") {
 			processRound(match, false, p2);
 		} else if (p2.curCard.type === "ice") {
-			if (p1.curCard.number > p2.curCard.number) {
+			if (p1.curCard.power > p2.curCard.power) {
 				processRound(match, false, p1);
-			} else if (p1.curCard.number < p2.curCard.number) {
+			} else if (p1.curCard.power < p2.curCard.power) {
 				processRound(match, false, p2);
 			} else {
 				processRound(match, true, p1);
@@ -351,9 +351,9 @@ function fightCards(match) {
 		} else if (p2.curCard.type === "ice") {
 			processRound(match, false, p2);
 		} else if (p2.curCard.type === "water") {
-			if (p1.curCard.number > p2.curCard.number) {
+			if (p1.curCard.power > p2.curCard.power) {
 				processRound(match, false, p1);
-			} else if (p1.curCard.number < p2.curCard.number) {
+			} else if (p1.curCard.power < p2.curCard.power) {
 				processRound(match, false, p2);
 			} else {
 				processRound(match, true, p1);
@@ -364,7 +364,7 @@ function fightCards(match) {
 
 //winner and loser parameter names only applicable is not tied.
 function processRound(match, tied, winner) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var loser = match.players[match.players[0] !== winner ? 0 : 1];
 	if (!tied) {
 		winner.points[types.indexOf(winner.curCard.type)].push(winner.curCard);
@@ -396,7 +396,7 @@ function processRound(match, tied, winner) {
 }
 
 function nextRound(match) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < match.players.length; i++) {
 		match.players[i].curCard = undefined;
 		for (var j = 0; j < match.players[i].cards.length; j++) {
@@ -409,7 +409,7 @@ function nextRound(match) {
 }
 
 function checkForSet(player) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < player.points.length; i++) {
 		if (player.points[i].length === 3) {
 			return player.points[i];
@@ -430,7 +430,7 @@ function checkForSet(player) {
 }
 
 function leaveMatch(socket) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
 		var winner = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
@@ -443,7 +443,7 @@ function leaveMatch(socket) {
 }
 
 function endMatch(match, winner, loser, reason) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	io.to(match.matchId).emit("end match", winner.username, loser.username, reason);
 	updateElo(winner, loser);
 	var index = matches.indexOf(match);
@@ -456,18 +456,18 @@ function endMatch(match, winner, loser, reason) {
 }
 
 function updateElo(winner, loser) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	winner = findPlayerById(winner.socket.id);
 	loser = findPlayerById(loser.socket.id);
 	winner.elo += calculateEloGained(winner, loser, 1);
 	loser.elo += calculateEloGained(loser, winner, 0);
 	if (logFriendly) debug("Updated players elo. %s now has %s ELO, while %s now has %s.", winner.username, winner.elo, loser.username, loser.elo);
-	sendPlayerInfo(winner.socket);
-	sendPlayerInfo(loser.socket);
+	if (winner) sendPlayerInfo(winner.socket);
+	if (loser) sendPlayerInfo(loser.socket);
 }
 
 function calculateEloGained(player, opponent, outcome) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	difference = opponent.elo - player.elo;
 	winChance = 1/(1 + Math.pow(10, difference/400));
 	eloGained = 32 * (outcome - winChance);
@@ -475,14 +475,14 @@ function calculateEloGained(player, opponent, outcome) {
 }
 
 function generateDeck() {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var c = Math.floor(Math.random() * (6));
 	deck = [];
 	for (var t = 0; t < types.length; t++) {
-		for (var n = 1; n < numbers.length; n++) {
+		for (var n = 1; n < powers.length; n++) {
 			deck.push({
 				type: types[t],
-				number: numbers[n],
+				power: powers[n],
 				color: colors[c++ % 6]
 			});
 		}
@@ -492,6 +492,6 @@ function generateDeck() {
 }
 
 function func(args) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, JSON.stringify(Array.prototype.slice.call(arguments).sort()));
+	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 
 }

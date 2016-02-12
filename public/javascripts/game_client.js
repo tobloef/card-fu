@@ -2,6 +2,13 @@ var socket = io();
 var username;
 var canPlayCard = false;
 
+spacecats = new Audio("../sound/spacecats.mp3");
+spacecats.addEventListener("ended", function() {
+    this.currentTime = 0;
+    this.play();
+}, false);
+spacecats.play();
+
 submitUsername(prompt("Please enter a username between 3 and 16 characters.\nOnly letters, number and underscore is allowed."));
 
 //////////  Socket Events  \\\\\\\\\\
@@ -127,7 +134,7 @@ function clearLog() {
 function updateCards(cards) {
 	$(".card_button").css("visibility", "visible");
 	for (var i = 0; i < cards.length; i++) {
-		$(".card_button#" + i).html(cards[i].color + "<br> " + cards[i].type + " " + cards[i].number);
+		$(".card_button#" + i).html(cards[i].color + "<br> " + cards[i].type + " " + cards[i].power);
 	}
 	canPlayCard = true;
 }
@@ -159,7 +166,7 @@ function displayResult(result) {
 		winner = opponent.username;
 	}
 	$("#log").append("<li>" + "You have both played a card, the result was:" + "</li>");
-	$("#log").append("<li>" + "Your " + you.card.color + " " + you.card.type + " " + you.card.number + " vs " + opponent.username + "'s " + you.card.color + " " + opponent.card.type + " " + opponent.card.number + "</li>");
+	$("#log").append("<li>" + "Your " + you.card.color + " " + you.card.type + " " + you.card.power + " vs " + opponent.username + "'s " + you.card.color + " " + opponent.card.type + " " + opponent.card.power + "</li>");
 	if (!result.tied) {
 		$("#log").append("<li>" + winner + " win this round." + "</li>");
 	} else {
@@ -184,7 +191,7 @@ function matchEnded(winner, loser, reason) {
 		} else {
 			winningSet = "";
 			for (var i = 0; i < reason.length; i++) {
-				winningSet += "<br>" + reason[i].color + " " + reason[i].type + " " + reason[i].number;
+				winningSet += "<br>" + reason[i].color + " " + reason[i].type + " " + reason[i].power;
 			}
 			$("#log").append("<li>" + "You won the game! Your wining set was:" + winningSet + "</li>");
 		}
@@ -196,7 +203,7 @@ function matchEnded(winner, loser, reason) {
 		} else {
 			winningSet = "";
 			for (var i = 0; i < reason.length; i++) {
-				winningSet += "<br>" + reason[i].color + " " + reason[i].type + " " + reason[i].number;
+				winningSet += "<br>" + reason[i].color + " " + reason[i].type + " " + reason[i].power;
 			}
 			$("#log").append("<li>" + "You lost the match! Your opponent's wining set was:" + winningSet + "</li>");
 		}

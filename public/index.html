@@ -1,34 +1,41 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-	<title>CardJitsu!</title>
-</head>
-
-<body>
-	<h3 id="user_info"></h3>
-	<div id="main_screen" style="visibility: hidden">
-		<button type="button" id="queue_button">Enter Queue</button>
-		<button type="button" id="clear_button">Clear Log</button>
-		<br><br>
-		<div id="match_screen" style="visibility: hidden">
-			<ul id="points"></ul>
-			<button type="button" class="card_button" id="0" style="visibility: hidden; height:40px; width:75px"></button>
-			<button type="button" class="card_button" id="1" style="visibility: hidden; height:40px; width:75px"></button>
-			<button type="button" class="card_button" id="2" style="visibility: hidden; height:40px; width:75px"></button>
-			<button type="button" class="card_button" id="3" style="visibility: hidden; height:40px; width:75px"></button>
-			<button type="button" class="card_button" id="4" style="visibility: hidden; height:40px; width:75px"></button>
+	<head>
+		<title>CardJitsu!</title>
+	</head>
+	
+	<body>
+		<h3 id="user_info"></h3>
+		<div id="main_screen" style="visibility: hidden">
+			<button type="button" id="queue_button">Enter Queue</button>
+			<button type="button" id="clear_button">Clear Log</button>
+			<br><br>
+			<div id="match_screen" style="visibility: hidden">
+				<ul id="points"></ul>
+				<button type="button" class="card_button" id="0" style="visibility: hidden; height:40px; width:75px"></button>
+				<button type="button" class="card_button" id="1" style="visibility: hidden; height:40px; width:75px"></button>
+				<button type="button" class="card_button" id="2" style="visibility: hidden; height:40px; width:75px"></button>
+				<button type="button" class="card_button" id="3" style="visibility: hidden; height:40px; width:75px"></button>
+				<button type="button" class="card_button" id="4" style="visibility: hidden; height:40px; width:75px"></button>
+			</div>
+			<h3 id="player_list_header"></h3>
+			<ul id="player_list"></ul>
+			<h3 id="log_header">Log:</h3>
+			<ul id="log"></ul>
 		</div>
-		<h3 id="player_list_header"></h3>
-		<ul id="player_list"></ul>
-		<h3 id="log_header">Log:</h3>
-		<ul id="log"></ul>
-	</div>
-
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.0/js.cookie.min.js"></script>
-	<script src="/javascripts/game_client.js"></script>
-</body>
-
+	
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.0/js.cookie.min.js"></script>
+		<script src="/javascripts/game_client.js"></script>
+		<script>
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		
+			ga('create', 'UA-73558830-1', 'auto');
+			ga('send', 'pageview');
+		</script>
+	</body>
 </html>
