@@ -10,4 +10,8 @@ canvas {
 	margin: 0 auto;
 	display: block;
 	border: 1px solid black;
+	position: relative;
+	top: 5%;
+	background:url(http://i.imgur.com/i5eaYf2.jpg);
+  	background-size: 100% 100%;
 }
