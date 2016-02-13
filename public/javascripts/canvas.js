@@ -1,3 +1,4 @@
+//////////  Prototypes  \\\\\\\\\\
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 }
@@ -5,19 +6,11 @@ Array.prototype.move = function (from, to) {
 	this.splice(to, 0, this.splice(from, 1)[0]);
 };
 
-function card(type, power, color) {
-	if (arguments.length > 1) {
-		this.type = type;
-		this.power = power;
-		this.color = color;
-	}
-}
-
+//////////  Canvas  \\\\\\\\\\
 function init() {
-	canvas = document.getElementById("gameCanvas");
+	canvas = document.getElementById("game-canvas");
 	ctx = canvas.getContext("2d");
 	handleResize();
-	deck = shuffleDeck(generateDeck());
 	handSlots = [];
 	for (var i = 1; i < 6; i++) {
 		handSlots.push({
@@ -28,9 +21,7 @@ function init() {
 			card: undefined
 		});
 	}
-	for (var i = 0; i < handSlots.length; i++) {
-		handSlots[i].card = deck.shift();
-	}
+	clickCursor = false;
 }
 
 function animate() {
@@ -38,51 +29,39 @@ function animate() {
 	draw();
 }
 
-function draw() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+//////////  Events  \\\\\\\\\\
+function handleMouseMove(event) {
+	var x = (event.pageX - canvas.offsetLeft),		
+		y = (event.pageY - canvas.offsetTop);
 	for (var i = 0; i < handSlots.length; i++) {
-		if (handSlots[i].card) {
-			drawCardSlot(handSlots[i]);
-		} else {
-			drawEmptySlot(handSlots[i]);
+		if (x > handSlots[i].position.x && x < handSlots[i].position.x + cardWidth &&
+			y > handSlots[i].position.y && y < handSlots[i].position.y + cardHeight && handSlots[i].card) {
+			if (!clickCursor) {
+				$("#game-canvas").css("cursor","pointer");
+				clickCursor = true;
+			}
+			return;
+		}
+	}
+	$("#game-canvas").css("cursor","auto");
+	clickCursor = false;
+}
+
+function handleClick(event) {
+	var x = (event.pageX - canvas.offsetLeft),		
+		y = (event.pageY - canvas.offsetTop);
+	for (var i = 0; i < handSlots.length; i++) {
+		if (x > handSlots[i].position.x && x < handSlots[i].position.x + cardWidth &&
+			y > handSlots[i].position.y && y < handSlots[i].position.y + cardHeight &&
+			handSlots[i].card && canPlayCard) {
+			playCard(i);
+			playerCard = handSlots[i].card;
+			setHandSlot(i, undefined);
+			return;
 		}
 	}
 }
 
-function drawCardSlot(slot) {
-	drawCard(slot.card, slot.position, 1);
-}
-
-function drawCard(card, position, scale) {
-	if (!scale) {
-		scale = 1;
-	}
-	ctx.fillStyle = (card.unknown) ? "#6f6f6f" : card.color;
-	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
-	ctx.lineWidth = 2;
-	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
-	ctx.fillStyle = (card.unknown) ? "#a0a0a0" : "#FFFFFF";
-	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
-	ctx.textAlign = "center";
-	if (card.unknown) {
-		ctx.fillStyle = "#d1d1d1";
-		ctx.font = (72 * r * scale) + "px Arial";
-		ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.6 * scale);
-	} else {
-		ctx.fillStyle = typeColors[types.indexOf(card.type)];
-		ctx.font = (64 * scale * r) + "px Arial";
-		ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.45);
-		ctx.font = (32 * scale * r) + "px Arial";
-		ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.75);
-	}
-}
-
-function drawEmptySlot(slot) {
-	ctx.fillStyle = "#a0a0a0";
-	ctx.fillRect(slot.position.x, slot.position.y, cardWidth, cardHeight);
-	ctx.fillStyle = "#000000";
-	ctx.strokeRect(slot.position.x, slot.position.y, cardWidth, cardHeight);
-}
 
 function handleResize() {
 	if (window.innerWidth < window.innerHeight * aspect) {
@@ -104,29 +83,108 @@ function handleResize() {
 			};
 		}
 	}
+	playerCardPosition = {x: canvas.width * 0.17, y: canvas.height * 0.15};
+	opponentCardPosition = {x: canvas.width * 0.83 - cardWidth * 1.5, y: canvas.height * 0.15};
 }
 
-function generateDeck() {
-	var c = Math.floor(Math.random() * (6));
-	deck = [];
-	for (var t = 0; t < types.length; t++) {
-		for (var n = 1; n < powers.length; n++) {
-			deck.push(new card(types[t], powers[n], colors[c++ % 6]));
+//////////  Drawing  \\\\\\\\\\
+function draw() {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	for (var i = 0; i < handSlots.length; i++) {
+		if (handSlots[i].card) {
+			drawCard(handSlots[i].card, handSlots[i].position, 1);
+		} else {
+			drawEmptySlot(handSlots[i]);
 		}
 	}
-	return deck;
+	drawPoints();
+	if (playerCard) {
+		drawCard(playerCard, playerCardPosition, 1.5);
+	}
+	if (opponentCard) {
+		if (opponentCard.isUnknown) {
+			drawUnknownCard(opponentCardPosition, 1.5);
+		} else {
+			drawCard(opponentCard, opponentCardPosition, 1.5);
+		}
+	}
 }
 
-function shuffleDeck(deck) {
-	var deckCopy = deck.slice();
-	for (var i = deckCopy.length - 1; i > 0; i--) {
-		var j = Math.floor(Math.random() * (i + 1));
-		var temp = deckCopy[i];
-		deckCopy[i] = deckCopy[j];
-		deckCopy[j] = temp;
+
+function drawCard(card, position, scale) {
+	if (!scale) {
+		scale = 1;
 	}
-	return deckCopy;
+	ctx.fillStyle = card.color;
+	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
+	ctx.lineWidth = 2 * scale * r;
+	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
+	ctx.fillStyle = "#ffffff";
+	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
+	ctx.fillStyle = typeColors[card.type];
+	ctx.textAlign = "center";
+	ctx.font = "bold " + (64 * scale * r) + "px Arial";
+	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.45);
+	ctx.font = (32 * scale * r) + "px Arial";
+	ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.75);
 }
+
+function drawPointCard(card, position, scale) {
+	if (!scale) {
+		scale = 1;
+	}
+	ctx.fillStyle = card.color;
+	ctx.fillRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
+	ctx.lineWidth = 4 * scale * r;
+	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
+	ctx.fillStyle = typeColors[card.type];
+	ctx.textAlign = "center";
+	ctx.font = "bold " + (72 * scale * r) + "px Arial";
+	ctx.fillText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.7);
+}
+
+function drawUnknownCard(position, scale) {
+	if (!scale) {
+		scale = 1;
+	}
+	ctx.fillStyle = "#6f6f6f";
+	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
+	ctx.lineWidth = 2 * scale * r;
+	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
+	ctx.fillStyle = "#a0a0a0";
+	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
+	ctx.fillStyle = "#d1d1d1";
+	ctx.textAlign = "center";
+	ctx.font = "bold " + (72 * r * scale) + "px Arial";
+	ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.6 * scale);
+}
+
+function drawEmptySlot(slot) {
+	ctx.fillStyle = "#a0a0a0";
+	ctx.fillRect(slot.position.x, slot.position.y, cardWidth, cardHeight);
+	ctx.fillStyle = "#000000";
+	ctx.strokeRect(slot.position.x, slot.position.y, cardWidth, cardHeight);
+}
+
+function drawPoints() {
+	for (var i = 0; i < playerPoints.length; i++) {
+		for (var j = playerPoints[i].length - 1; j >= 0; j--) {
+			drawPointCard(playerPoints[i][j], {x: cardWidth * 0.6 * i + 10 * r, y: cardHeight * 0.5 * j * 0.2 + 10 * r}, 0.5);
+		}
+	}
+}
+
+//////////  Functions  \\\\\\\\\\
+
+function setHandSlot(index, card) {
+	handSlots[index].card = card;
+}
+
+function enterQueue() {
+	alert("entered queue")
+}
+
+//////////  Initialize  \\\\\\\\\\
 window.requestAnimFrame = (function () {
 	return window.requestAnimationFrame ||
 		   window.webkitRequestAnimationFrame ||
@@ -137,14 +195,17 @@ window.requestAnimFrame = (function () {
 			   window.setTimeout(callback, 1000 / 60);
 		   };
 })();
-var canvas, ctx, clickPos, clickedCard, wr, hr, deck, cardWidth, cardHeight, oldSize, handSlots;
-var types = ["fire", "water", "ice"];
-var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
-var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
-var typeColors = ["#FF8B26", "#1260E6", "#74D5F2"];
+
+var canvas, ctx, clickPos, clickedCard, wr, hr, cardWidth, cardHeight, handSlots, clickCursor, opponentCard, playerCard,
+playerCardPosition, opponentCardPosition;
+var playerPoints = [],
+	opponentPoints = [];
+var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
 var aspect = 16 / 10;
 
 init();
 animate();
 
 window.addEventListener("resize", handleResize, false);
+canvas.addEventListener("mousemove", handleMouseMove, false);
+canvas.addEventListener("click", handleClick, false);

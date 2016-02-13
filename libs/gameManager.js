@@ -46,6 +46,10 @@ module.exports.listen = function(app) {
 		socket.on("leave match", function() {
 			leaveMatch(socket);
 		});
+
+		socket.on("request cards update", function() {
+			updateCardsRequested(socket);
+		});
 	});
 	return io;
 };
@@ -266,7 +270,7 @@ function findMatchBySocketId(socketId) {
 	for (var i = 0; i < matches.length; i++) {
 		for (var j = 0; j < matches[i].players.length; j++) {
 			if (matches[i].players[j].socket.id === socketId) {
-				if (logFriendly) debug("Found match with player %s with id %s in it.", players[j].username, socketId);
+				if (logFriendly) debug("Found match with player with id %s in it.", socketId);
 				return matches[i];
 			}
 		}
@@ -385,10 +389,9 @@ function processRound(match, tied, winner) {
 			points: loser.points
 		}
 	});
-	var set = checkForSet(winner);
-	if (set) {
-		if (logFriendly) debug("Player %s has full set %s.", winner.username, JSON.stringify(set));
-		endMatch(match, winner, loser, set);
+	if (checkForSet(winner)) {
+		if (logFriendly) debug("Player %s has full set %s.", winner.username, JSON.stringify(winner.points));
+		endMatch(match, winner, loser, "set");
 	} else {
 		if (logFriendly) debug("No sets, going to next round.");
 		nextRound(match);
@@ -404,15 +407,20 @@ function nextRound(match) {
 				match.players[i].cards[j] = drawCard(match.players[i].deck);
 			}
 		}
-		match.players[i].socket.emit("update cards", match.players[i].cards);
 	}
 }
 
 function checkForSet(player) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < player.points.length; i++) {
-		if (player.points[i].length === 3) {
-			return player.points[i];
+		var setColors = [];
+		for (var j = 0; j < player.points[i].length; j++) {
+			if (setColors.indexOf(player.points[i][j].color) === -1) {
+				setColors.push(player.points[i][j].color);
+			}
+		}
+		if (setColors.length >= 3) {
+			return true;
 		}
 	}
 	for (var i = 0; i < player.points[0].length; i++) {
@@ -421,7 +429,8 @@ function checkForSet(player) {
 				if (player.points[0][i].color !== player.points[1][j].color &&
 					player.points[0][i].color !== player.points[2][k].color &&
 					player.points[1][j].color !== player.points[2][k].color) {
-					return [player.points[0][i], player.points[1][j], player.points[2][k]];
+					//[player.points[0][i], player.points[1][j], player.points[2][k]];
+					return true;
 				}
 			}
 		}
@@ -491,7 +500,12 @@ function generateDeck() {
 	return deck;
 }
 
-function func(args) {
+function updateCardsRequested(socket) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-
+	var match = findMatchBySocketId(socket.id);
+	if (match) {
+		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1]
+		if (logFriendly) debug("Player %s requested a cards update. Sending it to them.", player.username);
+		player.socket.emit("update cards", player.cards);
+	}
 }
