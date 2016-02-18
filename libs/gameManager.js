@@ -61,12 +61,12 @@ function playerDisconnected(socket) {
 	var player = findPlayerById(socket.id);
 	var index = players.indexOf(player);
 	if (index > -1) {
-		if (logFriendly) debug("Player %s got disconnected.", player.username);
-		players.splice(index, 1);
 		leaveQueue(socket);
 		leaveMatch(socket);
+		if (logFriendly) debug("Player %s got disconnected.", player.username);
+		players.splice(index, 1);
 	} else {
-		if (logFriendly) debug("Player tried to disconnect but wasn't even on player list.");
+		if (logFriendly) debug("Player tried to disconnect but wasn't on player list.");
 	}
 	sendStats();
 }

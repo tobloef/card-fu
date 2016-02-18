@@ -10,10 +10,15 @@ submitUsername(prompt("Please enter a username between 3 and 16 characters.\nOnl
 socket.on("username response", function(response) {
 	if (response.success) {
 		username = response.username
-		enterQueue();
+		findOpponentButton.visible = true;
 	} else {
 		submitUsername(prompt("Username either already exists or is invalid. Please enter a different one."));
 	}
+});
+
+socket.on("enter match", function(usernames) {
+	findOpponentButton.visible = false;
+	displayCardSlots = true;
 });
 
 socket.on("update cards", function(cards) {
@@ -90,5 +95,8 @@ function matchEnded(winner, loser, reason) {
 		}
 		playerPoints = [];
 		opponentPoints = [];
+		displayCardSlots = false;
+		findOpponentButton.text = "Find Opponent";
+		findOpponentButton.visible = true;
 	}, (3 * 1000));
 }

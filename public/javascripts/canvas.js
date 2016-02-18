@@ -6,6 +6,20 @@ Array.prototype.move = function (from, to) {
 	this.splice(to, 0, this.splice(from, 1)[0]);
 };
 
+//////////  Constructors  \\\\\\\\\\
+function button(position, width, height, color, text, textColor, textSize, callback, visible) {
+	this.position = position;
+	this.height = height;
+	this.width = width;
+	this.color = color;
+	this.text = text;
+	this.textColor = textColor;
+	this.textSize = textSize;
+	this.callback = callback;
+	this.visible = visible;
+}
+
+
 //////////  Canvas  \\\\\\\\\\
 function init() {
 	canvas = document.getElementById("game-canvas");
@@ -21,7 +35,7 @@ function init() {
 			card: undefined
 		});
 	}
-	clickCursor = false;
+	findOpponentButton = new button({x: canvas.width/2 - 400 / 2 * r, y: canvas.height/2 - 100 / 2 * r}, 400, 100, "#7fb466", "Find Opponent", "#ffffff", 52, enterQueue, false);
 }
 
 function animate() {
@@ -43,6 +57,14 @@ function handleMouseMove(event) {
 			return;
 		}
 	}
+	if (x > findOpponentButton.position.x && x < findOpponentButton.position.x + findOpponentButton.width * r &&
+		y > findOpponentButton.position.y && y < findOpponentButton.position.y + findOpponentButton.height * r && findOpponentButton.visible) {
+		if (!clickCursor) {
+			$("#game-canvas").css("cursor","pointer");
+			clickCursor = true;
+		}
+		return;
+	}
 	$("#game-canvas").css("cursor","auto");
 	clickCursor = false;
 }
@@ -59,6 +81,12 @@ function handleClick(event) {
 			handSlots[i].card = undefined;
 			return;
 		}
+	}
+	if (x > findOpponentButton.position.x && x < findOpponentButton.position.x + findOpponentButton.width * r &&
+		y > findOpponentButton.position.y && y < findOpponentButton.position.y + findOpponentButton.height * r && findOpponentButton.visible) {
+		enterQueue();
+		findOpponentButton.text = "Searching...";
+		return;
 	}
 }
 
@@ -85,16 +113,21 @@ function handleResize() {
 	}
 	playerCardPosition = {x: canvas.width * 0.17, y: canvas.height * 0.15};
 	opponentCardPosition = {x: canvas.width * 0.83 - cardWidth * 1.5, y: canvas.height * 0.15};
+	if (findOpponentButton) {
+		findOpponentButton.position = {x: canvas.width/2 - findOpponentButton.width / 2 * r, y: canvas.height/2 - findOpponentButton.height / 2 * r};
+	}
 }
 
 //////////  Drawing  \\\\\\\\\\
 function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	for (var i = 0; i < handSlots.length; i++) {
-		if (handSlots[i].card) {
-			drawCard(handSlots[i].card, handSlots[i].position, 1);
-		} else {
-			drawEmptySlot(handSlots[i]);
+		if (displayCardSlots) {
+			if (handSlots[i].card) {
+				drawCard(handSlots[i].card, handSlots[i].position, 1);
+			} else {
+				drawEmptySlot(handSlots[i]);
+			}
 		}
 	}
 	drawPoints();
@@ -107,6 +140,9 @@ function draw() {
 		} else {
 			drawCard(opponentCard, opponentCardPosition, 1.5);
 		}
+	}
+	if (findOpponentButton.visible) {
+		drawFindOpponentButton();
 	}
 }
 
@@ -178,12 +214,24 @@ function drawPoints() {
 			drawPointCard(playerPoints[i][j], {x: cardWidth * 0.55 * i + 10 * r, y: cardHeight * 0.5 * j * 0.2 + 10 * r}, 0.5);
 		}
 	}
-	//for (var i = opponentPoints.length; i > 0; i--) {
+
 	for (var i = 0; i < opponentPoints.length; i++) {
 		for (var j = opponentPoints[i].length - 1; j >= 0; j--) {
 			drawPointCard(opponentPoints[i][j], {x: canvas.width - cardWidth * 0.55 * (3-i) - 5 * r, y: cardHeight * 0.5 * j * 0.2 + 10 * r}, 0.5);
 		}
 	}
+}
+
+function drawFindOpponentButton() {
+	ctx.fillStyle = findOpponentButton.color;
+	ctx.fillRect(findOpponentButton.position.x, findOpponentButton.position.y, findOpponentButton.width * r, findOpponentButton.height * r);
+	ctx.strokeStyle = "#000000";
+	ctx.lineWidth = 2 * r;
+	ctx.strokeRect(findOpponentButton.position.x, findOpponentButton.position.y, findOpponentButton.width * r, findOpponentButton.height * r);
+	ctx.fillStyle = findOpponentButton.textColor;
+	ctx.textAlign = "center";
+	ctx.font = (findOpponentButton.textSize * r) + "px Arial";
+	ctx.fillText(findOpponentButton.text, findOpponentButton.position.x + findOpponentButton.width * r / 2, findOpponentButton.position.y + findOpponentButton.height * r * 0.68);
 }
 
 //////////  Initialize  \\\\\\\\\\
@@ -198,9 +246,11 @@ window.requestAnimFrame = (function () {
 		   };
 })();
 
-var canvas, ctx, clickPos, clickedCard, cardWidth, cardHeight, clickCursor, playerCardPosition, opponentCardPosition;
+var canvas, ctx, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition, findOpponentButton;
+var clickCursor = false,
+	displayCardSlots = false,
+	aspect = 16 / 10;
 var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
-var aspect = 16 / 10;
 
 init();
 animate();
