@@ -56,7 +56,7 @@ function handleClick(event) {
 			handSlots[i].card && canPlayCard) {
 			playCard(i);
 			playerCard = handSlots[i].card;
-			setHandSlot(i, undefined);
+			handSlots[i].card = undefined;
 			return;
 		}
 	}
@@ -117,6 +117,7 @@ function drawCard(card, position, scale) {
 	}
 	ctx.fillStyle = card.color;
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
+	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 2 * scale * r;
 	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
 	ctx.fillStyle = "#ffffff";
@@ -124,7 +125,7 @@ function drawCard(card, position, scale) {
 	ctx.fillStyle = typeColors[card.type];
 	ctx.textAlign = "center";
 	ctx.font = "bold " + (64 * scale * r) + "px Arial";
-	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.45);
+	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale / 2);
 	ctx.font = (32 * scale * r) + "px Arial";
 	ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.75);
 }
@@ -135,12 +136,16 @@ function drawPointCard(card, position, scale) {
 	}
 	ctx.fillStyle = card.color;
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
+	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 4 * scale * r;
 	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
 	ctx.fillStyle = typeColors[card.type];
 	ctx.textAlign = "center";
 	ctx.font = "bold " + (72 * scale * r) + "px Arial";
 	ctx.fillText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.7);
+	ctx.strokeStyle = "#ffffff";
+	ctx.lineWidth = 2 * r * scale;
+	ctx.strokeText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.7);
 }
 
 function drawUnknownCard(position, scale) {
@@ -149,6 +154,7 @@ function drawUnknownCard(position, scale) {
 	}
 	ctx.fillStyle = "#6f6f6f";
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
+	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 2 * scale * r;
 	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
 	ctx.fillStyle = "#a0a0a0";
@@ -162,26 +168,22 @@ function drawUnknownCard(position, scale) {
 function drawEmptySlot(slot) {
 	ctx.fillStyle = "#a0a0a0";
 	ctx.fillRect(slot.position.x, slot.position.y, cardWidth, cardHeight);
-	ctx.fillStyle = "#000000";
+	ctx.strokeStyle = "#000000";
 	ctx.strokeRect(slot.position.x, slot.position.y, cardWidth, cardHeight);
 }
 
 function drawPoints() {
 	for (var i = 0; i < playerPoints.length; i++) {
 		for (var j = playerPoints[i].length - 1; j >= 0; j--) {
-			drawPointCard(playerPoints[i][j], {x: cardWidth * 0.6 * i + 10 * r, y: cardHeight * 0.5 * j * 0.2 + 10 * r}, 0.5);
+			drawPointCard(playerPoints[i][j], {x: cardWidth * 0.55 * i + 10 * r, y: cardHeight * 0.5 * j * 0.2 + 10 * r}, 0.5);
 		}
 	}
-}
-
-//////////  Functions  \\\\\\\\\\
-
-function setHandSlot(index, card) {
-	handSlots[index].card = card;
-}
-
-function enterQueue() {
-	alert("entered queue")
+	//for (var i = opponentPoints.length; i > 0; i--) {
+	for (var i = 0; i < opponentPoints.length; i++) {
+		for (var j = opponentPoints[i].length - 1; j >= 0; j--) {
+			drawPointCard(opponentPoints[i][j], {x: canvas.width - cardWidth * 0.55 * (3-i) - 5 * r, y: cardHeight * 0.5 * j * 0.2 + 10 * r}, 0.5);
+		}
+	}
 }
 
 //////////  Initialize  \\\\\\\\\\
@@ -196,10 +198,7 @@ window.requestAnimFrame = (function () {
 		   };
 })();
 
-var canvas, ctx, clickPos, clickedCard, wr, hr, cardWidth, cardHeight, handSlots, clickCursor, opponentCard, playerCard,
-playerCardPosition, opponentCardPosition;
-var playerPoints = [],
-	opponentPoints = [];
+var canvas, ctx, clickPos, clickedCard, cardWidth, cardHeight, clickCursor, playerCardPosition, opponentCardPosition;
 var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
 var aspect = 16 / 10;
 

@@ -10,7 +10,7 @@ var types = ["fire", "water", "ice"];
 var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
 var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
 
-var logFull = true;
+var logFull = false;
 var logFriendly = true;
 
 

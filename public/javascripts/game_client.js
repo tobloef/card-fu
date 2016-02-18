@@ -1,6 +1,8 @@
 var socket = io();
-var username;
 var canPlayCard = false;
+var playerPoints = [],
+	opponentPoints = [];
+var username, handSlots, opponentCard, playerCard;
 
 submitUsername(prompt("Please enter a username between 3 and 16 characters.\nOnly letters, number and underscore is allowed."));
 
@@ -26,6 +28,10 @@ socket.on("fight result", function(result) {
 	displayResult(result);
 });
 
+socket.on("end match", function(winner, loser, reason) {
+	matchEnded(winner, loser, reason);
+});
+
 //////////  Functions  \\\\\\\\\\
 function submitUsername(desiredUsername) {
 	socket.emit("username submit", desiredUsername);
@@ -37,7 +43,7 @@ function enterQueue() {
 
 function updateCards(cards) {
 	for (var i = 0; i < cards.length; i++) {
-		setHandSlot(i, cards[i]);
+		handSlots[i].card = cards[i]
 	}
 	canPlayCard = true;
 }
@@ -64,5 +70,25 @@ function displayResult(result) {
 		opponentCard = undefined;
 		playerCard = undefined;
 		socket.emit("request cards update");
+	}, (3 * 1000));
+}
+
+function matchEnded(winner, loser, reason) {
+	canPlayCard = false;
+	setTimeout(function() {
+		if (reason === "player left") {
+			alert(["Your opponent", "You"][+!(username === winner)] + " left the match. You " + ["lose", "win"][+(username === winner)] + "!");
+		} else if (reason === "player forfeit") {
+			alert(["Your opponent", "You"][+!(username === winner)] + " forfeited the match. You " + ["lose", "win"][+(username === winner)] + "!");
+		} else {
+			alert(["Your opponent", "You"][+(username === winner)] + " have a full set. You " + ["lose", "win"][+(username === winner)] + "!");
+		}
+		opponentCard = undefined;
+		playerCard = undefined;
+		for (var i = 0; i < handSlots.length; i++) {
+			handSlots[i].card = undefined;
+		}
+		playerPoints = [];
+		opponentPoints = [];
 	}, (3 * 1000));
 }

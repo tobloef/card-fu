@@ -1,7 +1,5 @@
 canvas {
 	border: 1px solid black;
 	margin-top: 2vh;
-	/*background: url(http://i.imgur.com/i5eaYf2.jpg);
-  	background-size: 100% 100%;*/
   	z-index: 0;
 }
