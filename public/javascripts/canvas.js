@@ -35,7 +35,7 @@ function init() {
 			card: undefined
 		});
 	}
-	findOpponentButton = new button({x: canvas.width/2 - 400 / 2 * r, y: canvas.height/2 - 100 / 2 * r}, 400, 100, "#7fb466", "Find Opponent", "#ffffff", 52, enterQueue, false);
+	findOpponentButton = new button({x: canvas.width/2 - 400 / 2 * r, y: canvas.height/2 - 100 / 2 * r}, 400, 100, "#53BD22", "Find Opponent", "#ffffff", 52, enterQueue, false);
 }
 
 function animate() {

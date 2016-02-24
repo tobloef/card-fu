@@ -65,7 +65,7 @@ function unknownCardPlayed() {
 }
 
 function displayResult(result) {
-	var player = (result.winner.username === username) ? result.winner : result.loser
+	var player = (result.winner.username === username) ? result.winner : result.loser;
 	var opponent = (result.winner.username !== username) ? result.winner : result.loser;
 	playerPoints = player.points;
 	opponentPoints = opponent.points;
@@ -79,24 +79,26 @@ function displayResult(result) {
 }
 
 function matchEnded(winner, loser, reason) {
-	canPlayCard = false;
 	setTimeout(function() {
+		canPlayCard = false;
 		if (reason === "player left") {
-			alert(["Your opponent", "You"][+!(username === winner)] + " left the match. You " + ["lose", "win"][+(username === winner)] + "!");
+			alert(["Your opponent", "You"][+(username !== winner)] + " left the match. You " + ["lose", "win"][+(username === winner)] + "!");
 		} else if (reason === "player forfeit") {
-			alert(["Your opponent", "You"][+!(username === winner)] + " forfeited the match. You " + ["lose", "win"][+(username === winner)] + "!");
+			alert(["Your opponent", "You"][+(username !== winner)] + " forfeited the match. You " + ["lose", "win"][+(username === winner)] + "!");
 		} else {
 			alert(["Your opponent", "You"][+(username === winner)] + " have a full set. You " + ["lose", "win"][+(username === winner)] + "!");
 		}
-		opponentCard = undefined;
-		playerCard = undefined;
-		for (var i = 0; i < handSlots.length; i++) {
-			handSlots[i].card = undefined;
-		}
-		playerPoints = [];
-		opponentPoints = [];
-		displayCardSlots = false;
-		findOpponentButton.text = "Find Opponent";
-		findOpponentButton.visible = true;
-	}, (3 * 1000));
+		setTimeout(function() {
+			opponentCard = undefined;
+			playerCard = undefined;
+			for (var i = 0; i < handSlots.length; i++) {
+				handSlots[i].card = undefined;
+			}
+			playerPoints = [];
+			opponentPoints = [];
+			displayCardSlots = false;
+			findOpponentButton.text = "Find Opponent";
+			findOpponentButton.visible = true;
+		}, (3 * 1000));
+	}, (0.5 * 1000));
 }
