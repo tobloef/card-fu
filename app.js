@@ -2,7 +2,6 @@ var express = require("express");
 var app = express();
 var http = require("http").Server(app);
 var io = require("./libs/gameManager").listen(http);
-var dbm = require("./libs/databaseManager");
 var favicon = require("serve-favicon");
 var debug = require("debug")("app");
 
