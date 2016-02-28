@@ -3,3 +3,8 @@ canvas {
 	margin-top: 2vh;
   	z-index: 0;
 }
+
+@font-face {
+    font-family: "Chinese_Takeaway";
+    src: url("http://cardfu.tobloef.com/Chinese_Takeaway.ttf");
+}

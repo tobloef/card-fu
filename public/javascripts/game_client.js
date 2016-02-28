@@ -2,22 +2,23 @@ var socket = io();
 var canPlayCard = false;
 var playerPoints = [],
 	opponentPoints = [];
-var username, handSlots, opponentCard, playerCard;
+var username, opponentUsername, handSlots, opponentCard, playerCard;
 
 submitUsername(prompt("Please enter a username between 3 and 16 characters.\nOnly letters, number and underscore is allowed."));
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("username response", function(response) {
 	if (response.success) {
-		username = response.username
-		findOpponentButton.visible = true;
+		username = response.username;
+		playButtonVisible = true;
 	} else {
 		submitUsername(prompt("Username either already exists or is invalid. Please enter a different one."));
 	}
 });
 
 socket.on("enter match", function(usernames) {
-	findOpponentButton.visible = false;
+	playButtonVisible = false;
+	opponentUsername = (usernames[0] !== username) ? usernames[0] : usernames[1];
 	displayCardSlots = true;
 });
 
@@ -81,10 +82,13 @@ function displayResult(result) {
 function matchEnded(winner, loser, reason) {
 	setTimeout(function() {
 		canPlayCard = false;
+		var delay = 3;
 		if (reason === "player left") {
 			alert(["Your opponent", "You"][+(username !== winner)] + " left the match. You " + ["lose", "win"][+(username === winner)] + "!");
+			delay = 1;
 		} else if (reason === "player forfeit") {
 			alert(["Your opponent", "You"][+(username !== winner)] + " forfeited the match. You " + ["lose", "win"][+(username === winner)] + "!");
+			delay = 1;
 		} else {
 			alert(["Your opponent", "You"][+(username === winner)] + " have a full set. You " + ["lose", "win"][+(username === winner)] + "!");
 		}
@@ -97,8 +101,9 @@ function matchEnded(winner, loser, reason) {
 			playerPoints = [];
 			opponentPoints = [];
 			displayCardSlots = false;
-			findOpponentButton.text = "Find Opponent";
-			findOpponentButton.visible = true;
-		}, (3 * 1000));
+			playButtonText = "Play!";
+			playButtonVisible = true;
+			playButtonClickable = true;
+		}, (delay * 1000));
 	}, (0.5 * 1000));
 }

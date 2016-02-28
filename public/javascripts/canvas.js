@@ -6,20 +6,6 @@ Array.prototype.move = function (from, to) {
 	this.splice(to, 0, this.splice(from, 1)[0]);
 };
 
-//////////  Constructors  \\\\\\\\\\
-function button(position, width, height, color, text, textColor, textSize, callback, visible) {
-	this.position = position;
-	this.height = height;
-	this.width = width;
-	this.color = color;
-	this.text = text;
-	this.textColor = textColor;
-	this.textSize = textSize;
-	this.callback = callback;
-	this.visible = visible;
-}
-
-
 //////////  Canvas  \\\\\\\\\\
 function init() {
 	canvas = document.getElementById("game-canvas");
@@ -35,7 +21,9 @@ function init() {
 			card: undefined
 		});
 	}
-	findOpponentButton = new button({x: canvas.width/2 - 400 / 2 * r, y: canvas.height/2 - 100 / 2 * r}, 400, 100, "#53BD22", "Find Opponent", "#ffffff", 52, enterQueue, false);
+	playButtonVisible = true;
+	playButtonClickable = true;
+	playButtonText = "Play!";
 }
 
 function animate() {
@@ -51,16 +39,15 @@ function handleMouseMove(event) {
 		if (x > handSlots[i].position.x && x < handSlots[i].position.x + cardWidth &&
 			y > handSlots[i].position.y && y < handSlots[i].position.y + cardHeight && handSlots[i].card) {
 			if (!clickCursor) {
-				$("#game-canvas").css("cursor","pointer");
+				$("#game-canvas").css("cursor", "pointer");
 				clickCursor = true;
 			}
 			return;
 		}
 	}
-	if (x > findOpponentButton.position.x && x < findOpponentButton.position.x + findOpponentButton.width * r &&
-		y > findOpponentButton.position.y && y < findOpponentButton.position.y + findOpponentButton.height * r && findOpponentButton.visible) {
+	if (x > 330 * r && x < 650 * r && y > 330 * r && y < 480 * r && playButtonVisible && playButtonClickable) {
 		if (!clickCursor) {
-			$("#game-canvas").css("cursor","pointer");
+			$("#game-canvas").css("cursor", "pointer");
 			clickCursor = true;
 		}
 		return;
@@ -82,10 +69,10 @@ function handleClick(event) {
 			return;
 		}
 	}
-	if (x > findOpponentButton.position.x && x < findOpponentButton.position.x + findOpponentButton.width * r &&
-		y > findOpponentButton.position.y && y < findOpponentButton.position.y + findOpponentButton.height * r && findOpponentButton.visible) {
+	if (x > 330 * r && x < 650 * r && y > 330 * r && y < 480 * r && playButtonVisible && playButtonClickable) {
 		enterQueue();
-		findOpponentButton.text = "Searching...";
+		playButtonText = "Searching...";
+		playButtonClickable = false;
 		return;
 	}
 }
@@ -113,9 +100,6 @@ function handleResize() {
 	}
 	playerCardPosition = {x: canvas.width * 0.17, y: canvas.height * 0.15};
 	opponentCardPosition = {x: canvas.width * 0.83 - cardWidth * 1.5, y: canvas.height * 0.15};
-	if (findOpponentButton) {
-		findOpponentButton.position = {x: canvas.width/2 - findOpponentButton.width / 2 * r, y: canvas.height/2 - findOpponentButton.height / 2 * r};
-	}
 }
 
 //////////  Drawing  \\\\\\\\\\
@@ -141,8 +125,9 @@ function draw() {
 			drawCard(opponentCard, opponentCardPosition, 1.5);
 		}
 	}
-	if (findOpponentButton.visible) {
-		drawFindOpponentButton();
+	if (playButtonVisible) {
+		drawPlayButton();
+		drawLogo();
 	}
 }
 
@@ -151,7 +136,7 @@ function drawCard(card, position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
-	ctx.fillStyle = card.color;
+	ctx.fillStyle = colors[card.color];
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 2 * scale * r;
@@ -160,7 +145,7 @@ function drawCard(card, position, scale) {
 	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
 	ctx.fillStyle = typeColors[card.type];
 	ctx.textAlign = "center";
-	ctx.font = "bold " + (64 * scale * r) + "px Arial";
+	ctx.font = "bold " + (64 * scale * r) + "px Chinese_Takeaway";
 	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale / 2);
 	ctx.font = (32 * scale * r) + "px Arial";
 	ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.75);
@@ -170,7 +155,7 @@ function drawPointCard(card, position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
-	ctx.fillStyle = card.color;
+	ctx.fillStyle = colors[card.color];
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 4 * scale * r;
@@ -197,7 +182,7 @@ function drawUnknownCard(position, scale) {
 	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
 	ctx.fillStyle = "#d1d1d1";
 	ctx.textAlign = "center";
-	ctx.font = "bold " + (72 * r * scale) + "px Arial";
+	ctx.font = "bold " + (72 * r * scale) + "px Chinese_Takeaway";
 	ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.6 * scale);
 }
 
@@ -222,6 +207,7 @@ function drawPoints() {
 	}
 }
 
+/*
 function drawFindOpponentButton() {
 	ctx.fillStyle = findOpponentButton.color;
 	ctx.fillRect(findOpponentButton.position.x, findOpponentButton.position.y, findOpponentButton.width * r, findOpponentButton.height * r);
@@ -232,6 +218,29 @@ function drawFindOpponentButton() {
 	ctx.textAlign = "center";
 	ctx.font = (findOpponentButton.textSize * r) + "px Arial";
 	ctx.fillText(findOpponentButton.text, findOpponentButton.position.x + findOpponentButton.width * r / 2, findOpponentButton.position.y + findOpponentButton.height * r * 0.68);
+}
+*/
+
+function drawPlayButton() {
+	ctx.fillStyle = "#9a9a9a";
+	ctx.textAlign = "center";
+	ctx.font = (128 * r) + "px Chinese_Takeaway";
+	ctx.fillText(playButtonText, canvas.width/2 + (6 * r), canvas.height/1.4 + (6 * r));
+	ctx.fillStyle = "#000000";
+	ctx.textAlign = "center";
+	ctx.font = (128 * r) + "px Chinese_Takeaway";
+	ctx.fillText(playButtonText, canvas.width/2, canvas.height/1.4);
+}
+
+function drawLogo() {
+	ctx.fillStyle = "#9a9a9a";
+	ctx.textAlign = "center";
+	ctx.font = (192 * r) + "px Chinese_Takeaway";
+	ctx.fillText("Card Fu", canvas.width/2 + (6 * r), canvas.height/2.8 + (6 * r));
+	ctx.fillStyle = "#000000";
+	ctx.textAlign = "center";
+	ctx.font = (192 * r) + "px Chinese_Takeaway";
+	ctx.fillText("Card Fu", canvas.width/2, canvas.height/2.8);
 }
 
 //////////  Initialize  \\\\\\\\\\
@@ -246,11 +255,12 @@ window.requestAnimFrame = (function () {
 		   };
 })();
 
-var canvas, ctx, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition, findOpponentButton;
+var canvas, ctx, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition, playButtonClickable, playButtonVisible, playButtonText;
 var clickCursor = false,
 	displayCardSlots = false,
 	aspect = 16 / 10;
 var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
+var colors = {"yellow": "#fdee00", "orange": "#ffb235", "green": "#52a546", "blue": "#246acd", "red": "#e02929", "purple": "#9738af"};
 
 init();
 animate();
