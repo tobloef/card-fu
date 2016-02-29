@@ -6,7 +6,6 @@ var favicon = require("serve-favicon");
 var debug = require("debug")("app");
 
 app.set("port", (process.env.PORT || 3000));
-app.use(favicon(__dirname + "/public/images/node_favicon.ico"));
 app.use(express.static("public"));
 
 //User connects to server

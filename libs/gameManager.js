@@ -1,6 +1,5 @@
 var debug = require("debug")("game");
 var socketio = require("socket.io");
-var dbm = require("../libs/databaseManager");
 
 var players = [];
 var queue = [];
@@ -11,20 +10,18 @@ var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
 var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
 
 var logFull = false;
-var logFriendly = true;
-
 
 //////////  Socket.io  \\\\\\\\\\
 module.exports.listen = function(app) {
 	io = socketio.listen(app);
 	io.on("connection", function(socket) {
+		players.push({
+			socket: socket,
+			deck: undefined
+		});
 
 		socket.on("disconnect", function() {
 			playerDisconnected(socket);
-		});
-
-		socket.on("username submit", function(desiredUsername) {
-			processUsername(socket, desiredUsername);
 		});
 
 		socket.on("enter queue", function() {
@@ -63,119 +60,29 @@ function playerDisconnected(socket) {
 	if (index > -1) {
 		leaveQueue(socket);
 		leaveMatch(socket);
-		if (logFriendly) debug("Player %s got disconnected.", player.username);
 		players.splice(index, 1);
-	} else {
-		if (logFriendly) debug("Player tried to disconnect but wasn't on player list.");
 	}
-	sendStats();
-}
-
-function findPlayerByUsername(username) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	for (var i = 0; i < players.length; i++) {
-		if (players[i].username === username) {
-			if (logFriendly) debug("Found player with username %s.", username);
-			return players[i];
-		}
-	}
-	if (logFriendly) debug("Did not find player with username %s.", username);
-	return false;
 }
 
 function findPlayerById(socketId) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].socket.id === socketId) {
-			if (logFriendly) debug("Found player with id %s.", socketId);
 			return players[i];
 		}
 	}
-	if (logFriendly) debug("Did not find player with id %s.", socketId);
 	return false;
 }
-
-function playerExists(username) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	for (var i = 0; i < players.length; i++) {
-		if (players[i].username.toLowerCase() === username.toLowerCase()) {
-			if (logFriendly) debug("Player with username %s does exists.", username);
-			return true;
-		}
-	}
-	if (logFriendly) debug("Player with username %s does not exists.", username);
-	return false;
-}
-
-function usernameIsValid(username) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var isValid = !(username === undefined || username === null) && /^[a-z0-9_]{3,16}$/i.test(username);
-	if (logFriendly) debug("The username %s is %svalid.", username, (isValid) ? "" : "not ");
-	return isValid;
-}
-
-function processUsername(socket, desiredUsername) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	if (usernameIsValid(desiredUsername)) {
-		if (!playerExists(desiredUsername)) {
-			if (logFriendly) debug("Adding player %s to player list.", desiredUsername);
-			players.push({
-				username: desiredUsername,
-				socket: socket,
-				elo: 1000,
-				deck: undefined
-			});
-			socket.emit("username response", {
-				success: true,
-				username: desiredUsername
-			});
-			sendStats();
-			sendPlayerInfo(socket);
-		}
-	} else {
-		socket.emit("username response", {
-			success: false,
-		});
-	}
-}
-
-function sendStats() {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var stats = {
-		onlinePlayers: []
-	};
-	for (var i = 0; i < players.length; i++) {
-		stats.onlinePlayers.push(players[i].username);
-	}
-	if (logFriendly) debug("Sending stats to all players.");
-	io.emit("stats", stats);
-}
-
-function sendPlayerInfo(socket) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var player = findPlayerById(socket.id);
-	var info = {
-		username: player.username,
-		elo: player.elo
-	};
-	if (logFriendly) debug("Sending their player info to player %s.", player.username);
-	socket.emit("player info", info);
-}
-
 
 function enterQueue(socket) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var player = findPlayerById(socket.id);
 	if (queue.indexOf(player) === -1) {
 		queue.push(player);
-		if (logFriendly) debug("Added player %s to the queue.", player.username);
 		socket.emit("queue entered");
 		if (queue.length >= 2) {
-			if (logFriendly) debug("More than two players are in the queue, should create a match.");
 			createMatch([queue.shift(), queue.shift()]);
 		}
-	} else {
-		if (logFriendly) debug("Player %s tried to enter the queue, but is already in it.", player.username);
 	}
 }
 
@@ -184,19 +91,14 @@ function leaveQueue(socket) {
 	var player = findPlayerById(socket.id);
 	var index = queue.indexOf(player);
 	if (index > -1) {
-		if (logFriendly) debug("Removing player s% from the queue.", player.username);
 		queue.splice(index, 1);
-	} else {
-		if (logFriendly) debug("Player %s tried to leave the queue, but wasn't in it.", player.username);
 	}
 	socket.emit("queue left");
 }
 
 function createMatch(participants) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var usernames = [];
 	var id = createId();
-	if (logFriendly) debug("Creating match with id %s.", id);
 	var match = {
 		matchId: id,
 		players: [],
@@ -205,9 +107,7 @@ function createMatch(participants) {
 		timer: undefined
 	};
 	for (var i = 0; i < participants.length; i++) {
-		if (logFriendly) debug("Adding player %s to match with id %s.", participants[i].username, id);
 		var playerObject = {
-			username: participants[i].username,
 			socket: participants[i].socket,
 			deck: shuffleDeck(generateDeck()),
 			cards: [],
@@ -220,12 +120,11 @@ function createMatch(participants) {
 		};
 		dealInitialCards(playerObject);
 		match.players.push(playerObject);
-		usernames.push(participants[i].username);
 		participants[i].socket.emit("update cards", playerObject.cards);
 		participants[i].socket.join(id);
 	}
 	matches.push(match);
-	io.to(id).emit("enter match", usernames);
+	io.to(id).emit("enter match");
 }
 
 function createId() {
@@ -235,7 +134,6 @@ function createId() {
 	for (var i = 0; i < 16; i++) {
 		id += charset.charAt(Math.floor(Math.random() * charset.length));
 	}
-	if (logFriendly) debug("Generated id %s.", id);
 	return id;
 }
 
@@ -243,7 +141,6 @@ function dealInitialCards(playerObject) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < 5; i++) {
 		playerObject.cards[i] = drawCard(playerObject.deck);
-		if (logFriendly) debug("Gave player %s a %s.", playerObject.username, JSON.stringify(playerObject.cards[i]));
 	}
 }
 
@@ -261,7 +158,6 @@ function shuffleDeck(deck) {
 		deckCopy[i] = deckCopy[j];
 		deckCopy[j] = temp;
 	}
-	if (logFriendly) debug("Shuffled a deck.");
 	return deckCopy;
 }
 
@@ -270,12 +166,10 @@ function findMatchBySocketId(socketId) {
 	for (var i = 0; i < matches.length; i++) {
 		for (var j = 0; j < matches[i].players.length; j++) {
 			if (matches[i].players[j].socket.id === socketId) {
-				if (logFriendly) debug("Found match with player with id %s in it.", socketId);
 				return matches[i];
 			}
 		}
 	}
-	if (logFriendly) debug("Didn't find match with player with id %s in it.", socketId);
 	return false;
 }
 
@@ -294,14 +188,8 @@ function playCard(socket, index) {
 					if (curCardsReady(match)) {
 						fightCards(match);
 					}
-				} else {
-					if (logFriendly) debug("Player %s tried to play card at position %s, but that slot if empty.", player.username, index);
 				}
-			} else {
-				if (logFriendly) debug("Player %s tried to play card at position %s, which isn't valid.", player.username, index);
 			}
-		} else {
-			if (logFriendly) debug("Player %s tried to play card, but had already played one.", player.username);
 		}
 	}
 }
@@ -309,7 +197,6 @@ function playCard(socket, index) {
 function curCardsReady(match) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var isReady = (match.players[0].curCard && match.players[1].curCard)
-	if (logFriendly && isReady) debug("Both players in match %s have played their cards.", match.matchId);
 	return isReady;
 }
 
@@ -318,8 +205,6 @@ function fightCards(match) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var p1 = match.players[0];
 	var p2 = match.players[1];
-
-	if (logFriendly) debug("Player %s played a %s and player %s played a %s."), p1.username, p1.curCard, p2.username, p2.curCard;
 
 	if (p1.curCard.type === "fire") {
 		if (p2.curCard.type === "fire") {
@@ -372,28 +257,23 @@ function processRound(match, tied, winner) {
 	var loser = match.players[match.players[0] !== winner ? 0 : 1];
 	if (!tied) {
 		winner.points[types.indexOf(winner.curCard.type)].push(winner.curCard);
-		if (logFriendly) debug("The winner of this round was %s. The loser was %s.", winner.username, loser.username);
-	} else {
-		if (logFriendly) debug("Player %s and %s got tied this round.", winner.username, loser.username);
 	}
 	io.to(match.matchId).emit("fight result", {
 		tied: tied,
 		winner: {
-			username: winner.username,
+			socketId: winner.socket.id,
 			card: winner.curCard,
 			points: winner.points
 		},
 		loser: {
-			username: loser.username,
+			socketId: loser.socket.id,
 			card: loser.curCard,
 			points: loser.points
 		}
 	});
 	if (checkForSet(winner)) {
-		if (logFriendly) debug("Player %s has full set %s.", winner.username, JSON.stringify(winner.points));
 		endMatch(match, winner, loser, "set");
 	} else {
-		if (logFriendly) debug("No sets, going to next round.");
 		nextRound(match);
 	}
 }
@@ -429,7 +309,6 @@ function checkForSet(player) {
 				if (player.points[0][i].color !== player.points[1][j].color &&
 					player.points[0][i].color !== player.points[2][k].color &&
 					player.points[1][j].color !== player.points[2][k].color) {
-					//[player.points[0][i], player.points[1][j], player.points[2][k]];
 					return true;
 				}
 			}
@@ -444,43 +323,17 @@ function leaveMatch(socket) {
 	if (match) {
 		var winner = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
 		var loser = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
-		if (logFriendly) debug("Player %s left the match so player %s wins.", loser.username, winner.username);
 		endMatch(match, winner, loser, "player left");
-	} else {
-		if (logFriendly) debug("Player with id %s tried to leave a match, but isn't in one.", socket.id);
 	}
 }
 
 function endMatch(match, winner, loser, reason) {
 	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	io.to(match.matchId).emit("end match", winner.username, loser.username, reason);
-	updateElo(winner, loser);
+	io.to(match.matchId).emit("end match", winner.socket.id, loser.socket.id, reason);
 	var index = matches.indexOf(match);
 	if (index > -1) {
 		matches.splice(index, 1);
-		if (logFriendly) debug("Removes match with id %s from match list.", match.matchId);
-	} else {
-		if (logFriendly) debug("Tried to remove match with id %s from match list, but it isn't in the list anyway.", match.matchId);
 	}
-}
-
-function updateElo(winner, loser) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	winner = findPlayerById(winner.socket.id);
-	loser = findPlayerById(loser.socket.id);
-	winner.elo += calculateEloGained(winner, loser, 1);
-	loser.elo += calculateEloGained(loser, winner, 0);
-	if (logFriendly) debug("Updated players elo. %s now has %s ELO, while %s now has %s.", winner.username, winner.elo, loser.username, loser.elo);
-	if (winner) sendPlayerInfo(winner.socket);
-	if (loser) sendPlayerInfo(loser.socket);
-}
-
-function calculateEloGained(player, opponent, outcome) {
-	if (logFull) debug("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	difference = opponent.elo - player.elo;
-	winChance = 1/(1 + Math.pow(10, difference/400));
-	eloGained = 32 * (outcome - winChance);
-	return eloGained;
 }
 
 function generateDeck() {
@@ -496,7 +349,6 @@ function generateDeck() {
 			});
 		}
 	}
-	if (logFriendly) debug("Generated deck %s.", JSON.stringify(deck));
 	return deck;
 }
 
@@ -505,7 +357,6 @@ function updateCardsRequested(socket) {
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
 		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1]
-		if (logFriendly) debug("Player %s requested a cards update. Sending it to them.", player.username);
 		player.socket.emit("update cards", player.cards);
 	}
 }

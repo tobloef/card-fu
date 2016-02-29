@@ -2,23 +2,11 @@ var socket = io();
 var canPlayCard = false;
 var playerPoints = [],
 	opponentPoints = [];
-var username, opponentUsername, handSlots, opponentCard, playerCard;
-
-submitUsername(prompt("Please enter a username between 3 and 16 characters.\nOnly letters, number and underscore is allowed."));
+var handSlots, opponentCard, playerCard;
 
 //////////  Socket Events  \\\\\\\\\\
-socket.on("username response", function(response) {
-	if (response.success) {
-		username = response.username;
-		playButtonVisible = true;
-	} else {
-		submitUsername(prompt("Username either already exists or is invalid. Please enter a different one."));
-	}
-});
-
-socket.on("enter match", function(usernames) {
+socket.on("enter match", function() {
 	playButtonVisible = false;
-	opponentUsername = (usernames[0] !== username) ? usernames[0] : usernames[1];
 	displayCardSlots = true;
 });
 
@@ -39,10 +27,6 @@ socket.on("end match", function(winner, loser, reason) {
 });
 
 //////////  Functions  \\\\\\\\\\
-function submitUsername(desiredUsername) {
-	socket.emit("username submit", desiredUsername);
-}
-
 function enterQueue() {
 	socket.emit("enter queue");
 }
@@ -66,8 +50,8 @@ function unknownCardPlayed() {
 }
 
 function displayResult(result) {
-	var player = (result.winner.username === username) ? result.winner : result.loser;
-	var opponent = (result.winner.username !== username) ? result.winner : result.loser;
+	var player = (result.winner.socketId === socket.id) ? result.winner : result.loser;
+	var opponent = (result.winner.socketId !== socket.id) ? result.winner : result.loser;
 	playerPoints = player.points;
 	opponentPoints = opponent.points;
 	opponentCard = opponent.card;
@@ -82,15 +66,15 @@ function displayResult(result) {
 function matchEnded(winner, loser, reason) {
 	setTimeout(function() {
 		canPlayCard = false;
-		var delay = 3;
+		var delay = 2.5;
 		if (reason === "player left") {
-			alert(["Your opponent", "You"][+(username !== winner)] + " left the match. You " + ["lose", "win"][+(username === winner)] + "!");
+			alert(["Your opponent", "You"][+(socket.id !== winner)] + " left the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 			delay = 1;
 		} else if (reason === "player forfeit") {
-			alert(["Your opponent", "You"][+(username !== winner)] + " forfeited the match. You " + ["lose", "win"][+(username === winner)] + "!");
+			alert(["Your opponent", "You"][+(socket.id !== winner)] + " forfeited the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 			delay = 1;
 		} else {
-			alert(["Your opponent", "You"][+(username === winner)] + " have a full set. You " + ["lose", "win"][+(username === winner)] + "!");
+			alert(["Your opponent", "You"][+(socket.id === winner)] + " have a full set. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 		}
 		setTimeout(function() {
 			opponentCard = undefined;
