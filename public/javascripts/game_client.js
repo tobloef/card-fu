@@ -50,8 +50,8 @@ function unknownCardPlayed() {
 }
 
 function displayResult(result) {
-	var player = (result.winner.socketId === socket.id) ? result.winner : result.loser;
-	var opponent = (result.winner.socketId !== socket.id) ? result.winner : result.loser;
+	var player = (result.winner.socketId.substring(2) === socket.id) ? result.winner : result.loser;
+	var opponent = (result.winner.socketId.substring(2) !== socket.id) ? result.winner : result.loser;
 	playerPoints = player.points;
 	opponentPoints = opponent.points;
 	opponentCard = opponent.card;

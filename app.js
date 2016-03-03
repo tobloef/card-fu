@@ -3,7 +3,6 @@ var app = express();
 var http = require("http").Server(app);
 var io = require("./libs/gameManager").listen(http);
 var favicon = require("serve-favicon");
-var debug = require("debug")("app");
 
 app.set("port", (process.env.PORT || 3000));
 app.use(express.static("public"));
@@ -20,5 +19,5 @@ app.get("*", function(req, res) {
 
 //Start http server
 http.listen(app.get("port"), function() {
-	debug("Node app started on port %s", app.get("port"));
+	console.log("Node app started on port %s", app.get("port"));
 });
