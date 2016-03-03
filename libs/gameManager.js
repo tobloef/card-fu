@@ -298,6 +298,7 @@ function checkForSet(player) {
 				setColors.push(player.points[i][j].color);
 			}
 		}
+		// If the player has 3 of the same element of different color
 		if (setColors.length >= 3) {
 			return true;
 		}
@@ -305,9 +306,18 @@ function checkForSet(player) {
 	for (var i = 0; i < player.points[0].length; i++) {
 		for (var j = 0; j < player.points[1].length; j++) {
 			for (var k = 0; k < player.points[2].length; k++) {
+				
+				// If player has 3 different elements with 3 different colors
 				if (player.points[0][i].color !== player.points[1][j].color &&
 					player.points[0][i].color !== player.points[2][k].color &&
 					player.points[1][j].color !== player.points[2][k].color) {
+					return true;
+				}
+				// If the player has 3 different elements with same color
+				else if
+				   (player.points[0][i].color === player.points[1][j].color &&
+					player.points[0][i].color === player.points[2][k].color &&
+					player.points[1][j].color === player.points[2][k].color) {
 					return true;
 				}
 			}
