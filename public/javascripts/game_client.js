@@ -67,9 +67,6 @@ function matchEnded(winner, reason) {
 	setTimeout(function() {
 		canPlayCard = false;
 		var delay = 2.5;
-		console.log(socket.id)
-		console.log(winner)
-		console.log((socket.id === winner))
 		if (reason === "player left") {
 			alert(["Your opponent", "You"][+(socket.id !== winner)] + " left the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 			delay = 1;
