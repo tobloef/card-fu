@@ -4,7 +4,7 @@ var http = require("http").Server(app);
 var io = require("./libs/gameManager").listen(http);
 var favicon = require("serve-favicon");
 
-app.set("port", (process.env.PORT || 3000));
+app.set("port", (process.env.PORT || 3001));
 app.use(express.static("public"));
 
 //User connects to server

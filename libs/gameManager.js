@@ -8,7 +8,7 @@ var types = ["fire", "water", "ice"];
 var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
 var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
 
-var logFull = false;
+var logFull = true;
 
 //////////  Socket.io  \\\\\\\\\\
 module.exports.listen = function(app) {
@@ -250,7 +250,6 @@ function fightCards(match) {
 	}
 }
 
-//winner and loser parameter names only applicable is not tied.
 function processRound(match, tied, winner) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var loser = match.players[match.players[0] !== winner ? 0 : 1];
@@ -260,18 +259,18 @@ function processRound(match, tied, winner) {
 	io.to(match.matchId).emit("fight result", {
 		tied: tied,
 		winner: {
-			socketId: winner.socket.id,
+			socketId: winner.socket.id.substring(2),
 			card: winner.curCard,
 			points: winner.points
 		},
 		loser: {
-			socketId: loser.socket.id,
+			socketId: loser.socket.id.substring(2),
 			card: loser.curCard,
 			points: loser.points
 		}
 	});
 	if (checkForSet(winner)) {
-		endMatch(match, winner, loser, "set");
+		endMatch(match, winner, "set");
 	} else {
 		nextRound(match);
 	}
@@ -321,14 +320,13 @@ function leaveMatch(socket) {
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
 		var winner = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
-		var loser = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
-		endMatch(match, winner, loser, "player left");
+		endMatch(match, winner, "player left");
 	}
 }
 
-function endMatch(match, winner, loser, reason) {
+function endMatch(match, winner, reason) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	io.to(match.matchId).emit("end match", winner.socket.id, loser.socket.id, reason);
+	io.to(match.matchId).emit("end match", winner.socket.id.substring(2), reason);
 	var index = matches.indexOf(match);
 	if (index > -1) {
 		matches.splice(index, 1);

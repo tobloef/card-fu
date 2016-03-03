@@ -22,8 +22,8 @@ socket.on("fight result", function(result) {
 	displayResult(result);
 });
 
-socket.on("end match", function(winner, loser, reason) {
-	matchEnded(winner, loser, reason);
+socket.on("end match", function(winner, reason) {
+	matchEnded(winner, reason);
 });
 
 //////////  Functions  \\\\\\\\\\
@@ -50,8 +50,8 @@ function unknownCardPlayed() {
 }
 
 function displayResult(result) {
-	var player = (result.winner.socketId.substring(2) === socket.id) ? result.winner : result.loser;
-	var opponent = (result.winner.socketId.substring(2) !== socket.id) ? result.winner : result.loser;
+	var player = (result.winner.socketId === socket.id) ? result.winner : result.loser;
+	var opponent = (result.winner.socketId !== socket.id) ? result.winner : result.loser;
 	playerPoints = player.points;
 	opponentPoints = opponent.points;
 	opponentCard = opponent.card;
@@ -63,10 +63,13 @@ function displayResult(result) {
 	}, (3 * 1000));
 }
 
-function matchEnded(winner, loser, reason) {
+function matchEnded(winner, reason) {
 	setTimeout(function() {
 		canPlayCard = false;
 		var delay = 2.5;
+		console.log(socket.id)
+		console.log(winner)
+		console.log((socket.id === winner))
 		if (reason === "player left") {
 			alert(["Your opponent", "You"][+(socket.id !== winner)] + " left the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 			delay = 1;
