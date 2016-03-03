@@ -77,7 +77,7 @@ function matchEnded(winner, reason) {
 			alert(["Your opponent", "You"][+(socket.id !== winner)] + " forfeited the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 			delay = 1;
 		} else {
-			alert(["Your opponent", "You"][+(socket.id === winner)] + " have a full set. You " + ["lose", "win"][+(socket.id === winner)] + "!");
+			alert(["Your opponent has", "You have"][+(socket.id === winner)] + " a full set. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 		}
 		setTimeout(function() {
 			opponentCard = undefined;
