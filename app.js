@@ -12,8 +12,6 @@ app.get("/", function(req, res) {
 	//Will serve static page index.html
 });
 
-//lmao
-
 //If page doesn't exist
 app.get("*", function(req, res) {
 	res.send("404", 404);
