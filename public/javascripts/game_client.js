@@ -76,6 +76,7 @@ function matchEnded(winner, reason) {
 		} else {
 			alert(["Your opponent has", "You have"][+(socket.id === winner)] + " a full set. You " + ["lose", "win"][+(socket.id === winner)] + "!");
 		}
+	
 		setTimeout(function() {
 			opponentCard = undefined;
 			playerCard = undefined;
@@ -84,10 +85,21 @@ function matchEnded(winner, reason) {
 			}
 			playerPoints = [];
 			opponentPoints = [];
-			displayCardSlots = false;
-			playButtonText = "Play!";
-			playButtonVisible = true;
-			playButtonClickable = true;
+		
+			var rematch = confirm("Do you want a rematch? :D");
+			if(rematch){
+				// Send the opponent id as an argument
+				socket.emit("request rematch");
+			}
+			else{
+				socket.emit("remove match");
+				
+				displayCardSlots = false;
+				playButtonText = "Play!";
+				playButtonVisible = true;
+				playButtonClickable = true;
+			}
 		}, (delay * 1000));
+
 	}, (0.5 * 1000));
 }

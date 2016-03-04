@@ -3,6 +3,7 @@ var socketio = require("socket.io");
 var players = [];
 var queue = [];
 var matches = [];
+var rematchRequests = [];
 
 var types = ["fire", "water", "ice"];
 var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
@@ -45,6 +46,14 @@ module.exports.listen = function(app) {
 
 		socket.on("request cards update", function() {
 			updateCardsRequested(socket);
+		});
+
+		socket.on("request rematch", function(){
+			rematchRequested(socket);
+		});
+
+		socket.on("remove match", function(){
+			removeMatch(socket);
 		});
 	});
 	return io;
@@ -337,6 +346,13 @@ function leaveMatch(socket) {
 function endMatch(match, winner, reason) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	io.to(match.matchId).emit("end match", winner.socket.id.substring(2), reason);
+}
+
+function removeMatch(socket, match ){
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+
+	if(match === undefined)
+		match = findMatchBySocketId(socket.id);
 	var index = matches.indexOf(match);
 	if (index > -1) {
 		matches.splice(index, 1);
@@ -367,3 +383,16 @@ function updateCardsRequested(socket) {
 		player.socket.emit("update cards", player.cards);
 	}
 }
+
+function rematchRequested(socket) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+
+	var match = findMatchBySocketId(socket.id);
+
+	if(match.rematch !== undefined){
+		removeMatch(socket, match);
+		createMatch([findPlayerById(socket.id), findPlayerById(match.rematch)]);
+	}
+	else
+		match.rematch = socket.id;
+} 
