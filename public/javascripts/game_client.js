@@ -6,7 +6,8 @@ var handSlots, opponentCard, playerCard;
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("enter match", function() {
-	playButtonVisible = false;
+	labels["searching"].visible = false;
+	labels["logo"].visible = false;
 	displayCardSlots = true;
 });
 
@@ -87,19 +88,30 @@ function matchEnded(winner, reason) {
 			opponentPoints = [];
 		
 			var rematch = confirm("Do you want a rematch? :D");
-			if(rematch){
-				// Send the opponent id as an argument
+			if (rematch){
 				socket.emit("request rematch");
-			}
-			else{
+			} else {
 				socket.emit("remove match");
 				
 				displayCardSlots = false;
-				playButtonText = "Play!";
-				playButtonVisible = true;
-				playButtonClickable = true;
+				labels["play"].visible = true;
+				labels["play"].clickable = true;
+				labels["searching"].visible = false;
+				labels["logo"].visible = true;
 			}
 		}, (delay * 1000));
 
 	}, (0.5 * 1000));
+}
+
+//////////  Label Callbacks  \\\\\\\\\\
+function clickPlayLabel() {
+	enterQueue();
+	labels["play"].visible = false;
+	labels["play"].clickable = false;
+	labels["searching"].visible = true;
+}
+
+function clickRematchLabel() {
+	//TODO Implement this
 }

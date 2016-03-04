@@ -2,9 +2,20 @@
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 }
+
 Array.prototype.move = function (from, to) {
 	this.splice(to, 0, this.splice(from, 1)[0]);
 };
+
+//////////  Constructors  \\\\\\\\\\
+function Label(position, text, size, visible, clickable, callback) {
+	this.position = position;
+	this.text = text;
+	this.size = size;
+	this.callback = callback;
+	this.visible = visible;
+	this.clickable = clickable;
+}
 
 //////////  Canvas  \\\\\\\\\\
 function init() {
@@ -21,9 +32,11 @@ function init() {
 			card: undefined
 		});
 	}
-	playButtonVisible = true;
-	playButtonClickable = true;
-	playButtonText = "Play!";
+
+	labels["logo"] = new Label({x: 0.5, y: 0.35}, "Card Fu", 192, true, false);
+	labels["play"] = new Label({x: 0.5, y: 0.7}, "Play!", 128, true, true, clickPlayLabel);
+	labels["rematch"] = new Label({x: 0.5, y: 0.7}, "Rematch", 128, false, false, clickRematchLabel);
+	labels["searching"] = new Label({x: 0.5, y: 0.7}, "Searching...", 128, false, false);
 }
 
 function animate() {
@@ -33,11 +46,8 @@ function animate() {
 
 //////////  Events  \\\\\\\\\\
 function handleMouseMove(event) {
-	var x = (event.pageX - canvas.offsetLeft),		
-		y = (event.pageY - canvas.offsetTop);
 	for (var i = 0; i < handSlots.length; i++) {
-		if (x > handSlots[i].position.x && x < handSlots[i].position.x + cardWidth &&
-			y > handSlots[i].position.y && y < handSlots[i].position.y + cardHeight && handSlots[i].card) {
+		if (isOnSlot(event, handSlots[i])) {
 			if (!clickCursor) {
 				$("#game-canvas").css("cursor", "pointer");
 				clickCursor = true;
@@ -45,38 +55,67 @@ function handleMouseMove(event) {
 			return;
 		}
 	}
-	if (x > 330 * r && x < 650 * r && y > 330 * r && y < 480 * r && playButtonVisible && playButtonClickable) {
-		if (!clickCursor) {
-			$("#game-canvas").css("cursor", "pointer");
-			clickCursor = true;
+	for (i in labels) {
+		if (isOnLabel(event, labels[i])) {
+			if (!clickCursor) {
+				$("#game-canvas").css("cursor", "pointer");
+				clickCursor = true;
+			}
+			return;
 		}
-		return;
 	}
 	$("#game-canvas").css("cursor","auto");
 	clickCursor = false;
 }
 
 function handleClick(event) {
-	var x = (event.pageX - canvas.offsetLeft),		
-		y = (event.pageY - canvas.offsetTop);
 	for (var i = 0; i < handSlots.length; i++) {
-		if (x > handSlots[i].position.x && x < handSlots[i].position.x + cardWidth &&
-			y > handSlots[i].position.y && y < handSlots[i].position.y + cardHeight &&
-			handSlots[i].card && canPlayCard) {
+		if (isOnSlot(event, handSlots[i])) {
 			playCard(i);
 			playerCard = handSlots[i].card;
 			handSlots[i].card = undefined;
 			return;
 		}
 	}
-	if (x > 330 * r && x < 650 * r && y > 330 * r && y < 480 * r && playButtonVisible && playButtonClickable) {
-		enterQueue();
-		playButtonText = "Searching...";
-		playButtonClickable = false;
-		return;
+
+	for (i in labels) {
+		if (isOnLabel(event, labels[i]) && labels[i].callback) {
+			labels[i].callback();
+			return;
+		}
 	}
 }
 
+function isOnSlot(event, slot) {
+	var x = (event.pageX - canvas.offsetLeft),
+		y = (event.pageY - canvas.offsetTop);
+	if (slot.card && canPlayCard) {
+		if (x > slot.position.x && x < slot.position.x + cardWidth &&
+			y > slot.position.y && y < slot.position.y + cardHeight) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function isOnLabel(event, label) {
+	var x = (event.pageX - canvas.offsetLeft),
+		y = (event.pageY - canvas.offsetTop);
+	if (label.clickable) {
+		var labelWidth = label.text.length * label.size * r * 0.5;
+		var labelHeight = label.size * r;
+		var leftBoundary = label.position.x * canvas.width - labelWidth / 2;
+		var rightBoundary = label.position.x * canvas.width + labelWidth / 2;
+		var upperBoundary = label.position.y * canvas.height - labelHeight / 2;
+		var lowerBoundary = label.position.y * canvas.height + labelHeight / 2;
+
+		if (x > leftBoundary && x < rightBoundary &&
+			y > upperBoundary && y < lowerBoundary) {
+			return true;
+		}
+	}
+	return false;
+}
 
 function handleResize() {
 	if (window.innerWidth < window.innerHeight * aspect) {
@@ -125,9 +164,10 @@ function draw() {
 			drawCard(opponentCard, opponentCardPosition, 1.5);
 		}
 	}
-	if (playButtonVisible) {
-		drawPlayButton();
-		drawLogo();
+	for (i in labels) {
+		if (labels[i].visible) {
+			drawLabel(labels[i]);
+		}
 	}
 }
 
@@ -136,6 +176,8 @@ function drawCard(card, position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
+	ctx.textBaseline = "middle"; 
+	ctx.textAlign = "center";
 	ctx.fillStyle = colors[card.color];
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
 	ctx.strokeStyle = "#000000";
@@ -144,35 +186,37 @@ function drawCard(card, position, scale) {
 	ctx.fillStyle = "#ffffff";
 	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
 	ctx.fillStyle = typeColors[card.type];
-	ctx.textAlign = "center";
-	ctx.font = "bold " + (64 * scale * r) + "px Chinese_Takeaway";
-	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale / 2);
+	ctx.font = "bold " + (64 * scale * r) + "px chinese_takeaway";
+	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.4);
 	ctx.font = (32 * scale * r) + "px Arial";
-	ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.75);
+	ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.7);
 }
 
 function drawPointCard(card, position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
+	ctx.textBaseline = "middle"; 
+	ctx.textAlign = "center";
 	ctx.fillStyle = colors[card.color];
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 4 * scale * r;
 	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
 	ctx.fillStyle = typeColors[card.type];
-	ctx.textAlign = "center";
 	ctx.font = "bold " + (72 * scale * r) + "px Arial";
-	ctx.fillText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.7);
+	ctx.fillText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.5);
 	ctx.strokeStyle = "#ffffff";
-	ctx.lineWidth = 2 * r * scale;
-	ctx.strokeText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.7);
+	ctx.lineWidth = 3 * r * scale;
+	ctx.strokeText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.5);
 }
 
 function drawUnknownCard(position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
+	ctx.textBaseline = "middle"; 
+	ctx.textAlign = "center";
 	ctx.fillStyle = "#6f6f6f";
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
 	ctx.strokeStyle = "#000000";
@@ -181,8 +225,7 @@ function drawUnknownCard(position, scale) {
 	ctx.fillStyle = "#a0a0a0";
 	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
 	ctx.fillStyle = "#d1d1d1";
-	ctx.textAlign = "center";
-	ctx.font = "bold " + (72 * r * scale) + "px Chinese_Takeaway";
+	ctx.font = "bold " + (72 * r * scale) + "px chinese_takeaway";
 	ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.6 * scale);
 }
 
@@ -207,40 +250,14 @@ function drawPoints() {
 	}
 }
 
-/*
-function drawFindOpponentButton() {
-	ctx.fillStyle = findOpponentButton.color;
-	ctx.fillRect(findOpponentButton.position.x, findOpponentButton.position.y, findOpponentButton.width * r, findOpponentButton.height * r);
-	ctx.strokeStyle = "#000000";
-	ctx.lineWidth = 2 * r;
-	ctx.strokeRect(findOpponentButton.position.x, findOpponentButton.position.y, findOpponentButton.width * r, findOpponentButton.height * r);
-	ctx.fillStyle = findOpponentButton.textColor;
+function drawLabel(label) {
+	ctx.textBaseline = "middle"; 
 	ctx.textAlign = "center";
-	ctx.font = (findOpponentButton.textSize * r) + "px Arial";
-	ctx.fillText(findOpponentButton.text, findOpponentButton.position.x + findOpponentButton.width * r / 2, findOpponentButton.position.y + findOpponentButton.height * r * 0.68);
-}
-*/
-
-function drawPlayButton() {
+	ctx.font = (label.size * r) + "px chinese_takeaway";
 	ctx.fillStyle = "#9a9a9a";
-	ctx.textAlign = "center";
-	ctx.font = (128 * r) + "px Chinese_Takeaway";
-	ctx.fillText(playButtonText, canvas.width/2 + (6 * r), canvas.height/1.4 + (6 * r));
+	ctx.fillText(label.text, canvas.width * label.position.x + (6 * r), canvas.height * label.position.y + (6 * r));
 	ctx.fillStyle = "#000000";
-	ctx.textAlign = "center";
-	ctx.font = (128 * r) + "px Chinese_Takeaway";
-	ctx.fillText(playButtonText, canvas.width/2, canvas.height/1.4);
-}
-
-function drawLogo() {
-	ctx.fillStyle = "#9a9a9a";
-	ctx.textAlign = "center";
-	ctx.font = (192 * r) + "px Chinese_Takeaway";
-	ctx.fillText("Card Fu", canvas.width/2 + (6 * r), canvas.height/2.8 + (6 * r));
-	ctx.fillStyle = "#000000";
-	ctx.textAlign = "center";
-	ctx.font = (192 * r) + "px Chinese_Takeaway";
-	ctx.fillText("Card Fu", canvas.width/2, canvas.height/2.8);
+	ctx.fillText(label.text, canvas.width * label.position.x, canvas.height * label.position.y);
 }
 
 //////////  Initialize  \\\\\\\\\\
@@ -255,10 +272,11 @@ window.requestAnimFrame = (function () {
 		   };
 })();
 
-var canvas, ctx, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition, playButtonClickable, playButtonVisible, playButtonText;
+var canvas, ctx, horizontalCenter, verticalCenter, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition;
 var clickCursor = false,
 	displayCardSlots = false,
-	aspect = 16 / 10;
+	aspect = 16 / 10,
+	labels = [];
 var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
 var colors = {"yellow": "#fdee00", "orange": "#ffb235", "green": "#52a546", "blue": "#246acd", "red": "#e02929", "purple": "#9738af"};
 
