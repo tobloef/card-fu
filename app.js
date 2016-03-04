@@ -2,14 +2,13 @@ var express = require("express");
 var app = express();
 var http = require("http").Server(app);
 var io = require("./libs/gameManager").listen(http);
-var favicon = require("serve-favicon");
 
 app.set("port", (process.env.PORT || 3001));
 app.use(express.static("public"));
 
 //User connects to server
 app.get("/", function(req, res) {
-	//Will serve static page index.html
+	//Will serve static pages
 });
 
 //If page doesn't exist
