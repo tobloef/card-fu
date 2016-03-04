@@ -9,6 +9,7 @@ Array.prototype.move = function (from, to) {
 
 //////////  Constructors  \\\\\\\\\\
 function Label(position, text, size, visible, clickable, callback) {
+	//x and y are integers betweem 0 and 1. Use as percentages.
 	this.position = position;
 	this.text = text;
 	this.size = size;
@@ -34,9 +35,12 @@ function init() {
 	}
 
 	labels["logo"] = new Label({x: 0.5, y: 0.35}, "Card Fu", 192, true, false);
-	labels["play"] = new Label({x: 0.5, y: 0.7}, "Play!", 128, true, true, clickPlayLabel);
-	labels["rematch"] = new Label({x: 0.5, y: 0.7}, "Rematch", 128, false, false, clickRematchLabel);
+	labels["play"] = new Label({x: 0.5, y: 0.7}, "Play!", 128, true, true, enterQueue);
 	labels["searching"] = new Label({x: 0.5, y: 0.7}, "Searching...", 128, false, false);
+	labels["reason"] = new Label({x: 0.5, y: 0.25}, "", 72, false, false);
+	labels["result"] = new Label({x: 0.5, y: 0.3}, "", 144, false, false);
+	labels["rematch"] = new Label({x: 0.5, y: 0.65}, "Rematch", 96, false, false, requestRematch);
+	labels["main menu"] = new Label({x: 0.5, y: 0.8}, "Main Menu", 96, false, false, exitMatch);
 }
 
 function animate() {
@@ -280,9 +284,13 @@ var clickCursor = false,
 var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
 var colors = {"yellow": "#fdee00", "orange": "#ffb235", "green": "#52a546", "blue": "#246acd", "red": "#e02929", "purple": "#9738af"};
 
-init();
-animate();
+//This is a bad and hacky way to wait for the font to load.
+//TODO Do this better
+//setTimeout(function() {
+    init();
+	animate();
 
-window.addEventListener("resize", handleResize, false);
-canvas.addEventListener("mousemove", handleMouseMove, false);
-canvas.addEventListener("click", handleClick, false);
+	window.addEventListener("resize", handleResize, false);
+	canvas.addEventListener("mousemove", handleMouseMove, false);
+	canvas.addEventListener("click", handleClick, false);
+//}, 1000);

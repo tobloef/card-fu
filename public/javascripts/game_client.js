@@ -2,7 +2,7 @@ var socket = io();
 var canPlayCard = false;
 var playerPoints = [],
 	opponentPoints = [];
-var handSlots, opponentCard, playerCard;
+var handSlots, opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd;
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("enter match", function() {
@@ -24,12 +24,20 @@ socket.on("fight result", function(result) {
 });
 
 socket.on("end match", function(winner, reason) {
-	matchEnded(winner, reason);
+	matchWinner = winner;
+	matchEndReason = reason;
+	readyToEnd = true;
+	if (canPlayCard) {
+		endMatch();
+	}
 });
 
 //////////  Functions  \\\\\\\\\\
 function enterQueue() {
 	socket.emit("enter queue");
+	labels["play"].visible = false;
+	labels["play"].clickable = false;
+	labels["searching"].visible = true;
 }
 
 function updateCards(cards) {
@@ -57,61 +65,60 @@ function displayResult(result) {
 	opponentPoints = opponent.points;
 	opponentCard = opponent.card;
 	setTimeout(function() {
-		canPlayCard = true;
-		opponentCard = undefined;
-		playerCard = undefined;
-		socket.emit("request cards update");
-	}, (3 * 1000));
-}
-
-function matchEnded(winner, reason) {
-	setTimeout(function() {
-		canPlayCard = false;
-		var delay = 2.5;
-		if (reason === "player left") {
-			alert(["Your opponent", "You"][+(socket.id !== winner)] + " left the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
-			delay = 1;
-		} else if (reason === "player forfeit") {
-			alert(["Your opponent", "You"][+(socket.id !== winner)] + " forfeited the match. You " + ["lose", "win"][+(socket.id === winner)] + "!");
-			delay = 1;
+		if (readyToEnd) {
+			endMatch()
 		} else {
-			alert(["Your opponent has", "You have"][+(socket.id === winner)] + " a full set. You " + ["lose", "win"][+(socket.id === winner)] + "!");
-		}
-	
-		setTimeout(function() {
+			canPlayCard = true;
 			opponentCard = undefined;
 			playerCard = undefined;
-			for (var i = 0; i < handSlots.length; i++) {
-				handSlots[i].card = undefined;
-			}
-			playerPoints = [];
-			opponentPoints = [];
-		
-			var rematch = confirm("Do you want a rematch? :D");
-			if (rematch){
-				socket.emit("request rematch");
-			} else {
-				socket.emit("remove match");
-				
-				displayCardSlots = false;
-				labels["play"].visible = true;
-				labels["play"].clickable = true;
-				labels["searching"].visible = false;
-				labels["logo"].visible = true;
-			}
-		}, (delay * 1000));
-
-	}, (0.5 * 1000));
+			socket.emit("request cards update");
+		}
+	}, (2 * 1000));
 }
 
-//////////  Label Callbacks  \\\\\\\\\\
-function clickPlayLabel() {
-	enterQueue();
-	labels["play"].visible = false;
-	labels["play"].clickable = false;
-	labels["searching"].visible = true;
+function endMatch() {
+	canPlayCard = false;
+	readyToEnd = false;
+	opponentCard = undefined;
+	playerCard = undefined;
+	displayCardSlots = false;
+	for (var i = 0; i < handSlots.length; i++) {
+		handSlots[i].card = undefined;
+	}
+
+	if (matchEndReason === "player left") {
+		var reason = ["Your opponent", "You"][+(socket.id !== matchWinner)] + " left the match";
+	} else {
+		var reason = ["Your opponent has", "You have"][+(socket.id === matchWinner)] + " a full set";
+		labels["rematch"].visible = true;
+		labels["rematch"].clickable = true;
+	}
+
+	labels["result"].text = ["You Lose!", "You Win!"][+(socket.id === matchWinner)];
+	labels["result"].visible = true;
+	//labels["reason"].text = reason;
+	//labels["reason"].visible = true;
+	labels["main menu"].visible = true;
+	labels["main menu"].clickable = true;
+	matchWinner = undefined;
+	matchEndReason = undefined;
 }
 
-function clickRematchLabel() {
-	//TODO Implement this
+function exitMatch() {
+	playerPoints = [];
+	opponentPoints = [];
+	socket.emit("remove match");
+	labels["result"].visible = false;
+	//labels["reason"].visible = false;
+	labels["main menu"].visible = false;
+	labels["main menu"].clickable = false;
+	labels["rematch"].visible = false;
+	labels["rematch"].clickable = false;
+	labels["play"].visible = true;
+	labels["play"].clickable = true;
+	labels["logo"].visible = true;
+}
+
+function requestRematch() {
+
 }
