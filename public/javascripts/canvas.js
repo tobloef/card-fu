@@ -38,14 +38,14 @@ function init() {
 			card: undefined
 		});
 	}
-	var labelFont = "RagingRedLotusBB";
 	labels["logo"] = new Label({x: 0.5, y: 0.3}, "Card Fu", 192, true, false, false, "ChineseTakeaway");
 	labels["play"] = new Label({x: 0.5, y: 0.7}, "Play!", 144, true, true, false, labelFont, enterQueue);
-	labels["searching"] = new Label({x: 0.5, y: 0.7}, "Searching...", 144, false, false, false, labelFont);
+	labels["searching"] = new Label({x: 0.5, y: 0.7}, "Searching   ", 144, false, false, false, labelFont);
 	labels["result"] = new Label({x: 0.5, y: 0.3}, "", 192, false, false, false, labelFont);
 	labels["rematch"] = new Label({x: 0.5, y: 0.62}, "Rematch", 128, false, false, false, labelFont, requestRematch);
-	labels["waiting"] = new Label({x: 0.5, y: 0.62}, "Waiting...", 128, false, false, false, labelFont);
+	labels["waiting"] = new Label({x: 0.5, y: 0.62}, "Waiting   ", 128, false, false, false, labelFont);
 	labels["main menu"] = new Label({x: 0.5, y: 0.78}, "Main Menu", 128, false, false, false, labelFont, exitMatch);
+	labels["timer"] = new Label({x: 0.5, y: 0.1}, 20, 64, false, false, false, labelFont);
 }
 
 function animate() {
@@ -64,16 +64,19 @@ function handleMouseMove(event) {
 			return;
 		}
 	}
+
 	for (i in labels) {
 		if (isOnLabel(event, labels[i])) {
 			if (!clickCursor) {
 				$("#game-canvas").css("cursor", "pointer");
 				clickCursor = true;
 			}
+			return;
 		} else {
 			labels[i].down = false;
 		}
 	}
+
 	$("#game-canvas").css("cursor","auto");
 	clickCursor = false;
 }
@@ -251,7 +254,7 @@ function drawUnknownCard(position, scale) {
 	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
 	ctx.fillStyle = "#d1d1d1";
 	ctx.font = "bold " + (72 * r * scale) + "px " + labelFont;
-	ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.6 * scale);
+	ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.5 * scale);
 }
 
 function drawEmptySlot(slot) {
@@ -310,7 +313,8 @@ var canvas, ctx, horizontalCenter, verticalCenter, clickPos, clickedCard, cardWi
 var clickCursor = false,
 	displayCardSlots = false,
 	aspect = 16 / 10,
-	labels = [];
+	labels = [],
+	labelFont = "RagingRedLotusBB";
 var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
 var colors = {"yellow": "#fdee00", "orange": "#ffb235", "green": "#52a546", "blue": "#246acd", "red": "#e02929", "purple": "#9738af"};
 

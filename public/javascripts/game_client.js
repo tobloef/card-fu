@@ -3,7 +3,7 @@ var canPlayCard = false;
 var logFull = true;
 var playerPoints = [],
 	opponentPoints = [];
-var handSlots, opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd;
+var handSlots, opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd, timerInterval;
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("enter match", function() {
@@ -33,16 +33,14 @@ socket.on("end match", function(winner, reason) {
 
 socket.on("no rematch", function() {
 	labels["rematch"].disabled = true;
-	if (labels["waiting"].visible) {
-		labels["waiting"].visible = false;
-		labels["rematch"].visible = true;
-	}
+	labels["rematch"].visible = true;
+	labels["waiting"].visible = false;
 });
 
 //////////  Functions  \\\\\\\\\\
 function enterQueue() {
 	if (logFull) console.log("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	//socket.emit("enter queue");
+	socket.emit("enter queue");
 	labels["play"].visible = false;
 	labels["play"].clickable = false;
 	labels["searching"].visible = true;
@@ -59,6 +57,9 @@ function enterMatch() {
 	labels["rematch"].clickable = false;
 	labels["rematch"].disabled = false;
 	labels["waiting"].visible = false;
+	labels["timer"].text = 20;
+	labels["timer"].visible = true;
+	timerInterval = setInterval(updateTimer, 1000);
 	resetDots(labels["waiting"]);
 	labels["searching"].visible = false;
 	resetDots(labels["searching"]);
@@ -94,6 +95,7 @@ function displayResult(result) {
 	playerPoints = player.points;
 	opponentPoints = opponent.points;
 	opponentCard = opponent.card;
+	clearInterval(timerInterval);
 	setTimeout(function() {
 		if (readyToEnd) {
 			endMatch();
@@ -101,6 +103,8 @@ function displayResult(result) {
 			canPlayCard = true;
 			opponentCard = undefined;
 			playerCard = undefined;
+			labels["timer"].text = 20;
+			timerInterval = setInterval(updateTimer, 1000);
 			socket.emit("request cards update");
 		}
 	}, (2 * 1000));
@@ -131,6 +135,9 @@ function endMatch() {
 	labels["rematch"].visible = true;
 	labels["main menu"].visible = true;
 	labels["main menu"].clickable = true;
+	labels["timer"].visible = false;
+	labels["timer"].text = 20;
+	clearInterval(timerInterval);
 	matchWinner = undefined;
 	matchEndReason = undefined;
 }
@@ -162,7 +169,6 @@ function requestRematch() {
 }
 
 function animateLabels() {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var dotLabels = [labels["waiting"], labels["searching"]];
 	for (var i = 0; i < dotLabels.length; i++) {
 		if (dotLabels[i].visible) {
@@ -172,13 +178,18 @@ function animateLabels() {
 }
 
 function updateDots(label) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var dots = label.text.split(".").length - 1;
 	var newDots = ((dots + 1) % 4);
 	label.text = label.text.slice(0, -3) + Array(newDots + 1).join(".") + Array(3 - newDots + 1).join(" ");
 }
 
 function resetDots(label) {
-	if (logFull) console.log("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	label.text = label.text.slice(0, -3) + "...";
+}
+
+function updateTimer() {
+	labels["timer"].text -= 1;
+	if (labels["timer"].text == 0) {
+		clearInterval(timerInterval);
+	}
 }
