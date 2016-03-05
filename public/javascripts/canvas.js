@@ -9,18 +9,21 @@ Array.prototype.move = function (from, to) {
 
 //////////  Constructors  \\\\\\\\\\
 function Label(position, text, size, visible, clickable, disabled, callback) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	//x and y are integers betweem 0 and 1. Use as percentages.
 	this.position = position;
 	this.text = text;
 	this.size = size;
-	this.callback = callback;
 	this.visible = visible;
 	this.clickable = clickable;
 	this.disabled = disabled;
+	this.down = false;
+	this.callback = callback;
 }
 
 //////////  Canvas  \\\\\\\\\\
 function init() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	canvas = document.getElementById("game-canvas");
 	ctx = canvas.getContext("2d");
 	handleResize();
@@ -66,26 +69,41 @@ function handleMouseMove(event) {
 				$("#game-canvas").css("cursor", "pointer");
 				clickCursor = true;
 			}
-			return;
+		} else {
+			labels[i].down = false;
 		}
 	}
 	$("#game-canvas").css("cursor","auto");
 	clickCursor = false;
 }
 
-function handleClick(event) {
+function handleMouseDown(event) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	for (i in labels) {
+		if (isOnLabel(event, labels[i]) && labels[i].clickable && !labels[i].disabled) {
+			labels[i].down = true;
+			return;
+		}
+	}
+}
+
+function handleMouseUp(event) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	for (i in labels) {
+		if (labels[i].down) {
+			labels[i].down = false;
+			if (labels[i].callback && labels[i].clickable) {
+				labels[i].callback();
+			}
+		}
+	}
+
+
 	for (var i = 0; i < handSlots.length; i++) {
 		if (isOnSlot(event, handSlots[i])) {
 			playCard(i);
 			playerCard = handSlots[i].card;
 			handSlots[i].card = undefined;
-			return;
-		}
-	}
-
-	for (i in labels) {
-		if (isOnLabel(event, labels[i]) && labels[i].callback) {
-			labels[i].callback();
 			return;
 		}
 	}
@@ -123,6 +141,7 @@ function isOnLabel(event, label) {
 }
 
 function handleResize() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	if (window.innerWidth < window.innerHeight * aspect) {
 		canvas.width = window.innerWidth * 0.9;
 		canvas.height = window.innerWidth * 0.9 / aspect;
@@ -266,7 +285,11 @@ function drawLabel(label) {
 	} else {
 		ctx.fillStyle = "#9a9a9a";
 	}
-	ctx.fillText(label.text, canvas.width * label.position.x, canvas.height * label.position.y);
+	if (label.down) {
+		ctx.fillText(label.text, canvas.width * label.position.x + (4 * r), canvas.height * label.position.y + (4 * r));
+	} else {
+		ctx.fillText(label.text, canvas.width * label.position.x, canvas.height * label.position.y);
+	}
 }
 
 //////////  Initialize  \\\\\\\\\\
@@ -294,4 +317,5 @@ animate();
 
 window.addEventListener("resize", handleResize, false);
 canvas.addEventListener("mousemove", handleMouseMove, false);
-canvas.addEventListener("click", handleClick, false);
+canvas.addEventListener("mousedown", handleMouseDown, false);
+canvas.addEventListener("mouseup", handleMouseUp, false);

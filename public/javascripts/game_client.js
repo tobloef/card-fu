@@ -1,5 +1,6 @@
 var socket = io();
 var canPlayCard = false;
+var logFull = true;
 var playerPoints = [],
 	opponentPoints = [];
 var handSlots, opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd;
@@ -36,6 +37,7 @@ socket.on("no rematch", function() {
 
 //////////  Functions  \\\\\\\\\\
 function enterQueue() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	socket.emit("enter queue");
 	labels["play"].visible = false;
 	labels["play"].clickable = false;
@@ -43,13 +45,22 @@ function enterQueue() {
 }
 
 function enterMatch() {
-	exitMatch();
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	playerPoints = [];
+	opponentPoints = [];
+	labels["result"].visible = false;
+	labels["main menu"].visible = false;
+	labels["main menu"].clickable = false;
+	labels["rematch"].visible = false;
+	labels["rematch"].clickable = false;
+	labels["rematch"].disabled = false;
 	labels["searching"].visible = false;
 	labels["logo"].visible = false;
 	displayCardSlots = true;
 }
 
 function updateCards(cards) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < cards.length; i++) {
 		handSlots[i].card = cards[i];
 	}
@@ -57,6 +68,7 @@ function updateCards(cards) {
 }
 
 function playCard(index) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	if (canPlayCard) {
 		socket.emit("play card", index);
 		canPlayCard = false;
@@ -64,10 +76,12 @@ function playCard(index) {
 }
 
 function unknownCardPlayed() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	opponentCard = {isUnknown: true};
 }
 
 function displayResult(result) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var player = (result.winner.socketId === socket.id) ? result.winner : result.loser;
 	var opponent = (result.winner.socketId !== socket.id) ? result.winner : result.loser;
 	playerPoints = player.points;
@@ -86,6 +100,7 @@ function displayResult(result) {
 }
 
 function endMatch() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	canPlayCard = false;
 	readyToEnd = false;
 	opponentCard = undefined;
@@ -114,6 +129,7 @@ function endMatch() {
 }
 
 function exitMatch() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	playerPoints = [];
 	opponentPoints = [];
 	socket.emit("leave match");
@@ -129,5 +145,6 @@ function exitMatch() {
 }
 
 function requestRematch() {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	socket.emit("request rematch");
 }
