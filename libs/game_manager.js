@@ -32,10 +32,6 @@ module.exports.listen = function(app) {
 			leaveQueue(socket);
 		});
 
-		socket.on("get player info", function() {
-			sendPlayerInfo(socket);
-		});
-
 		socket.on("play card", function(index) {
 			playCard(socket, index);
 		});
@@ -50,10 +46,6 @@ module.exports.listen = function(app) {
 
 		socket.on("request rematch", function(){
 			rematchRequested(socket);
-		});
-
-		socket.on("remove match", function(){
-			removeMatch(socket);
 		});
 	});
 	return io;
@@ -110,8 +102,7 @@ function createMatch(participants) {
 	var match = {
 		matchId: id,
 		players: [],
-		status: 0,
-		modifier: 0,
+		isOver: false,
 		timer: undefined
 	};
 	for (var i = 0; i < participants.length; i++) {
@@ -204,7 +195,7 @@ function playCard(socket, index) {
 
 function curCardsReady(match) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var isReady = (match.players[0].curCard && match.players[1].curCard)
+	var isReady = (match.players[0].curCard && match.players[1].curCard);
 	return isReady;
 }
 
@@ -322,10 +313,9 @@ function checkForSet(player) {
 					return true;
 				}
 				// If the player has 3 different elements with same color
-				else if
-				   (player.points[0][i].color === player.points[1][j].color &&
-					player.points[0][i].color === player.points[2][k].color &&
-					player.points[1][j].color === player.points[2][k].color) {
+				else if (player.points[0][i].color === player.points[1][j].color &&
+						 player.points[0][i].color === player.points[2][k].color &&
+						 player.points[1][j].color === player.points[2][k].color) {
 					return true;
 				}
 			}
@@ -338,21 +328,24 @@ function leaveMatch(socket) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
-		var winner = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
-		endMatch(match, winner, "player left");
+		if (!match.isOver) {
+			var winner = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
+			endMatch(match, winner, "player left");
+		} else {
+			io.to(match.matchId).emit("no rematch");
+		}
+		removeMatch(match);
 	}
 }
 
 function endMatch(match, winner, reason) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	io.to(match.matchId).emit("end match", winner.socket.id.substring(2), reason);
+	match.isOver = true;
 }
 
-function removeMatch(socket, match ){
+function removeMatch(match) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-
-	if(match === undefined)
-		match = findMatchBySocketId(socket.id);
 	var index = matches.indexOf(match);
 	if (index > -1) {
 		matches.splice(index, 1);
@@ -379,20 +372,21 @@ function updateCardsRequested(socket) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
-		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1]
+		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
 		player.socket.emit("update cards", player.cards);
 	}
 }
 
 function rematchRequested(socket) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-
 	var match = findMatchBySocketId(socket.id);
-
-	if(match.rematch !== undefined){
-		removeMatch(socket, match);
-		createMatch([findPlayerById(socket.id), findPlayerById(match.rematch)]);
+	if (match) {
+		var players = match.players;
+		if (match.rematch !== undefined && match.rematch !== socket.id) {
+			removeMatch(match);
+			createMatch(players);
+		} else {
+			match.rematch = socket.id;
+		}
 	}
-	else
-		match.rematch = socket.id;
 } 
