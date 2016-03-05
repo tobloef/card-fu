@@ -8,7 +8,7 @@ Array.prototype.move = function (from, to) {
 };
 
 //////////  Constructors  \\\\\\\\\\
-function Label(position, text, size, visible, clickable, disabled, callback) {
+function Label(position, text, size, visible, clickable, disabled, font, callback) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	//x and y are integers betweem 0 and 1. Use as percentages.
 	this.position = position;
@@ -18,6 +18,7 @@ function Label(position, text, size, visible, clickable, disabled, callback) {
 	this.clickable = clickable;
 	this.disabled = disabled;
 	this.down = false;
+	this.font = font;
 	this.callback = callback;
 }
 
@@ -37,14 +38,14 @@ function init() {
 			card: undefined
 		});
 	}
-
-	labels["logo"] = new Label({x: 0.5, y: 0.35}, "Card Fu", 192, true, false, false);
-	labels["play"] = new Label({x: 0.5, y: 0.7}, "Play!", 128, true, true, false, enterQueue);
-	labels["searching"] = new Label({x: 0.5, y: 0.7}, "Searching...", 128, false, false, false);
-	labels["reason"] = new Label({x: 0.5, y: 0.25}, "", 72, false, false, false);
-	labels["result"] = new Label({x: 0.5, y: 0.3}, "", 144, false, false, false);
-	labels["rematch"] = new Label({x: 0.5, y: 0.65}, "Rematch", 96, false, false, false, requestRematch);
-	labels["main menu"] = new Label({x: 0.5, y: 0.8}, "Main Menu", 96, false, false, false, exitMatch);
+	var labelFont = "RagingRedLotusBB";
+	labels["logo"] = new Label({x: 0.5, y: 0.3}, "Card Fu", 192, true, false, false, "ChineseTakeaway");
+	labels["play"] = new Label({x: 0.5, y: 0.7}, "Play!", 144, true, true, false, labelFont, enterQueue);
+	labels["searching"] = new Label({x: 0.5, y: 0.7}, "Searching...", 144, false, false, false, labelFont);
+	labels["result"] = new Label({x: 0.5, y: 0.3}, "", 192, false, false, false, labelFont);
+	labels["rematch"] = new Label({x: 0.5, y: 0.62}, "Rematch", 128, false, false, false, labelFont, requestRematch);
+	labels["waiting"] = new Label({x: 0.5, y: 0.62}, "Waiting...", 128, false, false, false, labelFont);
+	labels["main menu"] = new Label({x: 0.5, y: 0.78}, "Main Menu", 128, false, false, false, labelFont, exitMatch);
 }
 
 function animate() {
@@ -249,7 +250,7 @@ function drawUnknownCard(position, scale) {
 	ctx.fillStyle = "#a0a0a0";
 	ctx.fillRect(position.x + cardWidth * scale * 0.1, position.y + cardHeight * scale * 0.067, cardWidth * scale * 0.8, cardHeight * scale * 0.866);
 	ctx.fillStyle = "#d1d1d1";
-	ctx.font = "bold " + (72 * r * scale) + "px chinese_takeaway";
+	ctx.font = "bold " + (72 * r * scale) + "px " + labelFont;
 	ctx.fillText("?", position.x + cardWidth * scale / 2, position.y + cardHeight * 0.6 * scale);
 }
 
@@ -277,16 +278,17 @@ function drawPoints() {
 function drawLabel(label) {
 	ctx.textBaseline = "middle"; 
 	ctx.textAlign = "center";
-	ctx.font = (label.size * r) + "px chinese_takeaway";
+	ctx.font = (label.size * r) + "px " + label.font;
+	var shadowDistance = label.size / 30;
 	if (!label.disabled) {
 		ctx.fillStyle = "#9a9a9a";
-		ctx.fillText(label.text, canvas.width * label.position.x + (6 * r), canvas.height * label.position.y + (6 * r));
+		ctx.fillText(label.text, canvas.width * label.position.x + (shadowDistance * r), canvas.height * label.position.y + (shadowDistance * r));
 		ctx.fillStyle = "#000000";
 	} else {
 		ctx.fillStyle = "#9a9a9a";
 	}
 	if (label.down) {
-		ctx.fillText(label.text, canvas.width * label.position.x + (4 * r), canvas.height * label.position.y + (4 * r));
+		ctx.fillText(label.text, canvas.width * label.position.x + (shadowDistance * 0.5 * r), canvas.height * label.position.y + (shadowDistance * 0.5 * r));
 	} else {
 		ctx.fillText(label.text, canvas.width * label.position.x, canvas.height * label.position.y);
 	}
@@ -319,3 +321,4 @@ window.addEventListener("resize", handleResize, false);
 canvas.addEventListener("mousemove", handleMouseMove, false);
 canvas.addEventListener("mousedown", handleMouseDown, false);
 canvas.addEventListener("mouseup", handleMouseUp, false);
+setInterval(animateLabels, 300);

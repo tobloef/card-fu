@@ -5,6 +5,11 @@ canvas {
 }
 
 @font-face {
-    font-family: "chinese_takeaway";
-    src: url("../fonts/chinese_takeaway.ttf");
+    font-family: "ChineseTakeaway";
+    src: url("../fonts/ChineseTakeaway.ttf");
+}
+
+@font-face {
+    font-family: "RagingRedLotusBB";
+    src: url("../fonts/RagingRedLotusBB.ttf");
 }

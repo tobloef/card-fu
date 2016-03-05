@@ -9,7 +9,7 @@ var types = ["fire", "water", "ice"];
 var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
 var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
 
-var logFull = true;
+var logFull = false;
 
 //////////  Socket.io  \\\\\\\\\\
 module.exports.listen = function(app) {
@@ -313,11 +313,11 @@ function checkForSet(player) {
 					return true;
 				}
 				// If the player has 3 different elements with same color
-				else if (player.points[0][i].color === player.points[1][j].color &&
+				/*else if (player.points[0][i].color === player.points[1][j].color &&
 						 player.points[0][i].color === player.points[2][k].color &&
 						 player.points[1][j].color === player.points[2][k].color) {
 					return true;
-				}
+				}*/
 			}
 		}
 	}
