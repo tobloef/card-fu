@@ -32,9 +32,12 @@ socket.on("end match", function(winner, reason) {
 });
 
 socket.on("no rematch", function() {
-	labels["rematch"].disabled = true;
-	labels["rematch"].visible = true;
-	labels["waiting"].visible = false;
+	if (labels["waiting"].visiblen || labels["rematch"].visible) {
+		labels["waiting"].visible = false;
+		labels["rematch"].disabled = true;
+		labels["rematch"].clickable = false;
+		labels["rematch"].visible = true;
+	}
 });
 
 //////////  Functions  \\\\\\\\\\
@@ -105,6 +108,7 @@ function displayResult(result) {
 			playerCard = undefined;
 			labels["timer"].text = 20;
 			timerInterval = setInterval(updateTimer, 1000);
+			canPlayCard = true;
 			socket.emit("request cards update");
 		}
 	}, (2 * 1000));
@@ -189,7 +193,8 @@ function resetDots(label) {
 
 function updateTimer() {
 	labels["timer"].text -= 1;
-	if (labels["timer"].text == 0) {
+	if (labels["timer"].text === 0) {
+		canPlayCard = false;
 		clearInterval(timerInterval);
 	}
 }

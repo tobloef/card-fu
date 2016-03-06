@@ -129,7 +129,7 @@ function isOnLabel(event, label) {
 	var x = (event.pageX - canvas.offsetLeft),
 		y = (event.pageY - canvas.offsetTop);
 	if (label.clickable) {
-		var labelWidth = label.text.length * label.size * r * 0.5;
+		var labelWidth = label.text.length * label.size * r * 0.4;
 		var labelHeight = label.size * r;
 		var leftBoundary = label.position.x * canvas.width - labelWidth / 2;
 		var rightBoundary = label.position.x * canvas.width + labelWidth / 2;
