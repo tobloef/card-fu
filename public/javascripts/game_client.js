@@ -33,7 +33,7 @@ socket.on("end match", function(winner, reason) {
 
 socket.on("no rematch", function() {
 	labels["rematch"].disabled = true;
-	labels["rematch"].visible = true;
+	labels["rematch"].visible = false;
 	labels["waiting"].visible = false;
 });
 
