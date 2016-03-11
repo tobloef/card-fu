@@ -50,6 +50,10 @@ module.exports.listen = function(app) {
 		socket.on("request rematch", function() {
 			rematchRequested(socket);
 		});
+
+		socket.on("game update", function(){
+			gameUpdate(socket);
+		});
 	});
 	return io;
 };
@@ -64,6 +68,11 @@ function playerDisconnected(socket) {
 		leaveMatch(socket);
 		players.splice(index, 1);
 	}
+}
+
+function gameUpdate(socket){
+	var match = findMatchBySocketId(socket.id);
+	socket.emit("gameUpdate", match.players[match.players[0].socket.id !== socket.id ? 0 : 1].curCard);
 }
 
 function findPlayerById(socketId) {
