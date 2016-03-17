@@ -40,6 +40,10 @@ socket.on("no rematch", function() {
 	}
 });
 
+socket.on("gameUpdate", function(card){
+	gameUpdate(card);
+});
+
 //////////  Functions  \\\\\\\\\\
 function enterQueue() {
 	if (logFull) console.log("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
@@ -185,6 +189,14 @@ function updateDots(label) {
 	var dots = label.text.split(".").length - 1;
 	var newDots = ((dots + 1) % 4);
 	label.text = label.text.slice(0, -3) + Array(newDots + 1).join(".") + Array(3 - newDots + 1).join(" ");
+}
+
+function returnGameUpdate(){
+	socket.emit("game update");
+}
+
+function gameUpdate(card){
+	opponentCard = card;
 }
 
 function resetDots(label) {
