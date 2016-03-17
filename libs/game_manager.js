@@ -406,7 +406,7 @@ function updateTimers() {
 	for (var i = 0; i < matches.length; i++) {
 		if (matches[i].timerActive) {
 			matches[i].timer -= 1;
-			console.log(matches[i].timer);
+			//console.log(matches[i].timer);
 			if (matches[i].timer === 0) {
 				timesup(matches[i]);
 			}
