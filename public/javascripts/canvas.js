@@ -111,6 +111,7 @@ function handleMouseUp(event) {
 			return;
 		}
 	}
+	handleMouseMove(event);
 }
 
 function isOnSlot(event, slot) {
@@ -204,7 +205,7 @@ function drawCard(card, position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
-	ctx.textBaseline = "middle"; 
+	ctx.textBaseline = "middle";
 	ctx.textAlign = "center";
 	ctx.fillStyle = colors[card.color];
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
@@ -224,7 +225,7 @@ function drawPointCard(card, position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
-	ctx.textBaseline = "middle"; 
+	ctx.textBaseline = "middle";
 	ctx.textAlign = "center";
 	ctx.fillStyle = colors[card.color];
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
@@ -243,7 +244,7 @@ function drawUnknownCard(position, scale) {
 	if (!scale) {
 		scale = 1;
 	}
-	ctx.textBaseline = "middle"; 
+	ctx.textBaseline = "middle";
 	ctx.textAlign = "center";
 	ctx.fillStyle = "#6f6f6f";
 	ctx.fillRect(position.x, position.y, cardWidth * scale, cardHeight * scale);
@@ -279,7 +280,7 @@ function drawPoints() {
 }
 
 function drawLabel(label) {
-	ctx.textBaseline = "middle"; 
+	ctx.textBaseline = "middle";
 	ctx.textAlign = "center";
 	ctx.font = (label.size * r) + "px " + label.font;
 	var shadowDistance = label.size / 30;

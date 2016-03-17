@@ -1,6 +1,6 @@
 var socket = io();
 var canPlayCard = false;
-var logFull = true;
+var logFull = false;
 var playerPoints = [],
 	opponentPoints = [];
 var handSlots, opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd, timerInterval;
