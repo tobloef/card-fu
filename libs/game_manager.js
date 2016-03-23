@@ -1,3 +1,5 @@
+// This file handles all socket.io connections and manages the serverside game logic.
+
 var socketio = require("socket.io");
 
 var players = [];
@@ -205,7 +207,6 @@ function curCardsReady(match) {
 	return isReady;
 }
 
-//This function should probably be shorter
 function fightCards(match) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var p1 = match.players[0];
@@ -318,13 +319,6 @@ function checkForSet(player) {
 					player.points[1][j].color !== player.points[2][k].color) {
 					return true;
 				}
-				
-				// If the player has 3 different elements with same color
-				/*else if (player.points[0][i].color === player.points[1][j].color &&
-						 player.points[0][i].color === player.points[2][k].color &&
-						 player.points[1][j].color === player.points[2][k].color) {
-					return true;
-				}*/
 			}
 		}
 	}
@@ -406,7 +400,6 @@ function updateTimers() {
 	for (var i = 0; i < matches.length; i++) {
 		if (matches[i].timerActive) {
 			matches[i].timer -= 1;
-			//console.log(matches[i].timer);
 			if (matches[i].timer === 0) {
 				timesup(matches[i]);
 			}

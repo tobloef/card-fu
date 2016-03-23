@@ -1,3 +1,6 @@
+// This file manages the game's logic for most visual things and contains various functions
+// for drawing on and manipulating the canvas, used by the game client.
+
 //////////  Prototypes  \\\\\\\\\\
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
