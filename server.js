@@ -1,4 +1,5 @@
-
+// This file starts the both the Express server, used to serve the actual webpage,
+// and the Socket.io server, used to handle the the realtime connection to the client.
 
 var express = require("express");
 var app = express();
