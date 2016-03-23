@@ -3,9 +3,9 @@
   "description": "Simple game based on Club Penguins Card-Jitsu",
   "author": "Tobias Loefgren",
   "version": "0.1.0",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "~4.13.1",

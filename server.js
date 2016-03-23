@@ -13,7 +13,7 @@ app.get("/", function(req, res) {
 
 //If page doesn't exist
 app.get("*", function(req, res) {
-	res.send("404", 404);
+	res.status(404).send("Error 404 - Page not found");
 });
 
 //Start http server
