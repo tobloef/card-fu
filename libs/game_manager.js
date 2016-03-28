@@ -7,7 +7,6 @@ var queue = [];
 var matches = [];
 var rematchRequests = [];
 
-var types = ["fire", "water", "ice"];
 var powers = [10, 8, 7, 6, 5, 5, 4, 3, 3, 2];
 var colors = ["yellow", "orange", "green", "blue", "red", "purple"];
 
@@ -115,7 +114,7 @@ function createMatch(participants) {
 			socket: participants[i].socket,
 			deck: shuffleDeck(generateDeck()),
 			cards: [],
-			curCard: undefined,
+			cur: undefined,
 			points: [
 				[],
 				[],
@@ -183,14 +182,14 @@ function playCard(socket, index) {
 	var match = findMatchBySocketId(socket.id);
 	if (match) {
 		var player = match.players[match.players[0].socket.id === socket.id ? 0 : 1];
-		if (!player.curCard) {
+		if (!player.cur) {
 			if (index >= 0 && index <= 4) {
 				if (player.cards[index] !== undefined) {
-					player.curCard = player.cards[index];
+					player.cur = player.cards[index];
 					player.cards[index] = undefined;
 					var opponent = match.players[match.players[0].socket.id !== socket.id ? 0 : 1];
 					opponent.socket.emit("unknown card played");
-					if (curCardsReady(match)) {
+					if (cursReady(match)) {
 						match.timerActive = false;
 						match.timer = timerDuration;
 						fightCards(match);
@@ -201,78 +200,48 @@ function playCard(socket, index) {
 	}
 }
 
-function curCardsReady(match) {
+function cursReady(match) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var isReady = (match.players[0].curCard && match.players[1].curCard);
+	var isReady = (match.players[0].cur && match.players[1].cur);
 	return isReady;
 }
 
 function fightCards(match) {
-	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var p1 = match.players[0];
-	var p2 = match.players[1];
+	p0 = match.players[0].cur;
+	p1 = match.players[1].cur;
+	if (p0.type === p1.type) {
+		// If the the powers are equal, it's a tie. Pass the player with the higest power as winner.
+		processRound(match, p0.power === p1.power, match.players[p0.power > p1.power ? 0 : 1]);
+	} else {
+		// Using modulus we can find the player with the winning type.
+		// Our types are represented by numbers: Rock = 0, Paper = 1, Scissors = 2
+		// We don't have to worry about ties, so a table of outcomes would look like this:
 
-	if (p1.curCard.type === "fire") {
-		if (p2.curCard.type === "fire") {
-			if (p1.curCard.power > p2.curCard.power) {
-				processRound(match, false, p1);
-			} else if (p1.curCard.power < p2.curCard.power) {
-				processRound(match, false, p2);
-			} else {
-				processRound(match, true, p1);
-			}
-		} else if (p2.curCard.type === "ice") {
-			processRound(match, false, p1);
-		} else if (p2.curCard.type === "water") {
-			processRound(match, false, p2);
-		}
-	} else if (p1.curCard.type === "ice") {
-		if (p2.curCard.type === "fire") {
-			processRound(match, false, p2);
-		} else if (p2.curCard.type === "ice") {
-			if (p1.curCard.power > p2.curCard.power) {
-				processRound(match, false, p1);
-			} else if (p1.curCard.power < p2.curCard.power) {
-				processRound(match, false, p2);
-			} else {
-				processRound(match, true, p1);
-			}
-		} else if (p2.curCard.type === "water") {
-			processRound(match, false, p1);
-		}
-	} else if (p1.curCard.type === "water") {
-		if (p2.curCard.type === "fire") {
-			processRound(match, false, p1);
-		} else if (p2.curCard.type === "ice") {
-			processRound(match, false, p2);
-		} else if (p2.curCard.type === "water") {
-			if (p1.curCard.power > p2.curCard.power) {
-				processRound(match, false, p1);
-			} else if (p1.curCard.power < p2.curCard.power) {
-				processRound(match, false, p2);
-			} else {
-				processRound(match, true, p1);
-			}
-		}
+		// | Types  _0_|_1_|_2_|
+		// |   0   |   | 1 | 0 |
+		// |   1   | 0 |   | 1 |
+		// |   2   | 1 | 0 |   |
+
+		// Since we have an array of players, we can use the outcome as the index to get the winner.
+		processRound(match, false, match.players[(2 + p0.type - p1.type) % 3]);
 	}
 }
-
 function processRound(match, tied, winner) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var loser = match.players[match.players[0] !== winner ? 0 : 1];
 	if (!tied) {
-		winner.points[types.indexOf(winner.curCard.type)].push(winner.curCard);
+		winner.points[winner.cur.type].push(winner.cur);
 	}
 	io.to(match.matchId).emit("fight result", {
 		tied: tied,
 		winner: {
 			socketId: winner.socket.id.substring(2),
-			card: winner.curCard,
+			card: winner.cur,
 			points: winner.points
 		},
 		loser: {
 			socketId: loser.socket.id.substring(2),
-			card: loser.curCard,
+			card: loser.cur,
 			points: loser.points
 		}
 	});
@@ -286,7 +255,7 @@ function processRound(match, tied, winner) {
 function nextRound(match) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	for (var i = 0; i < match.players.length; i++) {
-		match.players[i].curCard = undefined;
+		match.players[i].cur = undefined;
 		for (var j = 0; j < match.players[i].cards.length; j++) {
 			if (match.players[i].cards[j] === undefined) {
 				match.players[i].cards[j] = drawCard(match.players[i].deck);
@@ -359,10 +328,10 @@ function generateDeck() {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	var c = Math.floor(Math.random() * (6));
 	deck = [];
-	for (var t = 0; t < types.length; t++) {
+	for (var t = 0; t < 3; t++) {
 		for (var n = 1; n < powers.length; n++) {
 			deck.push({
-				type: types[t],
+				type: t,
 				power: powers[n],
 				color: colors[c++ % 6]
 			});
@@ -412,14 +381,14 @@ function timesup(match) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
 	match.timerActive = false;
 	match.timer = timerDuration;
-	if (match.players[0].curCard) {
-		if (match.players[1].curCard) {
+	if (match.players[0].cur) {
+		if (match.players[1].cur) {
 			fightCards(match);
 		} else {
 			processRound(match, false, match.players[0]);
 		}
 	} else {
-		if (match.players[1].curCard) {
+		if (match.players[1].cur) {
 			processRound(match, false, match.players[1]);
 		} else {
 			processRound(match, true, match.players[0]);

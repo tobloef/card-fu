@@ -221,7 +221,7 @@ function drawCard(card, position, scale) {
 	ctx.font = "bold " + (64 * scale * r) + "px chinese_takeaway";
 	ctx.fillText(card.power, position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.4);
 	ctx.font = (32 * scale * r) + "px Arial";
-	ctx.fillText(card.type.capitalize(), position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.7);
+	ctx.fillText(types[card.type], position.x + cardWidth * scale / 2, position.y + cardHeight * scale * 0.7);
 }
 
 function drawPointCard(card, position, scale) {
@@ -237,10 +237,10 @@ function drawPointCard(card, position, scale) {
 	ctx.strokeRect(position.x, position.y, cardWidth * scale, cardWidth * scale);
 	ctx.fillStyle = typeColors[card.type];
 	ctx.font = "bold " + (72 * scale * r) + "px Arial";
-	ctx.fillText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.5);
+	ctx.fillText(types[card.type][0], position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.5);
 	ctx.strokeStyle = "#ffffff";
 	ctx.lineWidth = 3 * r * scale;
-	ctx.strokeText(card.type[0].toUpperCase(), position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.5);
+	ctx.strokeText(types[card.type][0], position.x + cardWidth * scale / 2, position.y + cardWidth * scale * 0.5);
 }
 
 function drawUnknownCard(position, scale) {
@@ -319,7 +319,8 @@ var clickCursor = false,
 	aspect = 16 / 10,
 	labels = [],
 	labelFont = "RagingRedLotusBB";
-var typeColors = {"fire": "#FF8B26", "water" : "#1260E6", "ice" : "#74D5F2"};
+var typeColors = ["#FF8B26", "#1260E6", "#74D5F2"];
+var types = ["Fire", "Water", "Ice"];
 var colors = {"yellow": "#fdee00", "orange": "#ffb235", "green": "#52a546", "blue": "#246acd", "red": "#e02929", "purple": "#9738af"};
 
 init();

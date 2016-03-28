@@ -4,6 +4,10 @@ canvas {
   	z-index: 0;
 }
 
+.play-guide {
+	margin: 5%;
+}
+
 @font-face {
     font-family: "ChineseTakeaway";
     src: url("../fonts/ChineseTakeaway.ttf");
