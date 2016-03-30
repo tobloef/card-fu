@@ -207,11 +207,12 @@ function cursReady(match) {
 }
 
 function fightCards(match) {
-	p0 = match.players[0].cur;
-	p1 = match.players[1].cur;
-	if (p0.type === p1.type) {
+	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
+	c0 = match.players[0].cur;
+	c1 = match.players[1].cur;
+	if (c0.type === c1.type) {
 		// If the the powers are equal, it's a tie. Pass the player with the higest power as winner.
-		processRound(match, p0.power === p1.power, match.players[p0.power > p1.power ? 0 : 1]);
+		processRound(match, c0.power === c1.power, match.players[c0.power > c1.power ? 0 : 1]);
 	} else {
 		// Using modulus we can find the player with the winning type.
 		// Our types are represented by numbers: Rock = 0, Paper = 1, Scissors = 2
@@ -223,7 +224,7 @@ function fightCards(match) {
 		// |   2   | 1 | 0 |   |
 
 		// Since we have an array of players, we can use the outcome as the index to get the winner.
-		processRound(match, false, match.players[(2 + p0.type - p1.type) % 3]);
+		processRound(match, false, match.players[(2 + c0.type - c1.type) % 3]);
 	}
 }
 function processRound(match, tied, winner) {
