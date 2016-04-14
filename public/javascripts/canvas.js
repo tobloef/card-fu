@@ -1,20 +1,11 @@
 // This file manages the game's logic for most visual things and contains various functions
 // for drawing on and manipulating the canvas, used by the game client.
 
-//////////  Prototypes  \\\\\\\\\\
-String.prototype.capitalize = function () {
-	return this.charAt(0).toUpperCase() + this.slice(1);
-}
-
-Array.prototype.move = function (from, to) {
-	this.splice(to, 0, this.splice(from, 1)[0]);
-};
-
 //////////  Constructors  \\\\\\\\\\
 function Label(position, text, size, visible, clickable, disabled, font, callback) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	//x and y are integers betweem 0 and 1. Use as percentages.
-	this.position = position;
+		//x and y are integers betweem 0 and 1. Use as percentages.
+this.position = position;
 	this.text = text;
 	this.size = size;
 	this.visible = visible;
@@ -31,7 +22,7 @@ function init() {
 	canvas = document.getElementById("game-canvas");
 	ctx = canvas.getContext("2d");
 	handleResize();
-	handSlots = [];
+	var handSlots = [];
 	for (var i = 1; i < 6; i++) {
 		handSlots.push({
 			position: {
