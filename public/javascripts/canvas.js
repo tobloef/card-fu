@@ -22,7 +22,7 @@ function init() {
 	canvas = document.getElementById("game-canvas");
 	ctx = canvas.getContext("2d");
 	handleResize();
-	var handSlots = [];
+	handSlots = [];
 	for (var i = 1; i < 6; i++) {
 		handSlots.push({
 			position: {
@@ -304,7 +304,7 @@ window.requestAnimFrame = (function () {
 		   };
 })();
 
-var canvas, ctx, horizontalCenter, verticalCenter, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition;
+var handSlots, canvas, ctx, horizontalCenter, verticalCenter, clickPos, clickedCard, cardWidth, cardHeight, playerCardPosition, opponentCardPosition;
 var clickCursor = false,
 	displayCardSlots = false,
 	aspect = 16 / 10,

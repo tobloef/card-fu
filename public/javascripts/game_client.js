@@ -6,7 +6,7 @@ var canPlayCard = false;
 var logFull = false;
 var playerPoints = [],
 	opponentPoints = [];
-var handSlots, opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd, timerInterval;
+var opponentCard, playerCard, matchWinner, matchEndReason, readyToEnd, timerInterval;
 
 //////////  Socket Events  \\\\\\\\\\
 socket.on("enter match", function() {
