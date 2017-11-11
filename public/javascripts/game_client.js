@@ -96,8 +96,15 @@ function unknownCardPlayed() {
 
 function displayResult(result) {
 	if (logFull) console.log("%s(%s)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	var player = (result.winner.socketId === socket.id) ? result.winner : result.loser;
-	var opponent = (result.winner.socketId !== socket.id) ? result.winner : result.loser;
+	var player = undefined;
+	var opponent = undefined;
+	if (result.winner.socketId === socket.id) {
+		player = result.winner;
+		opponent = result.loser;
+	} else {
+		player = result.loser;
+		opponent = result.winner;
+	}
 	playerPoints = player.points;
 	opponentPoints = opponent.points;
 	opponentCard = opponent.card;

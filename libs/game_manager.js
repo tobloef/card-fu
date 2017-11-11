@@ -233,19 +233,20 @@ function processRound(match, tied, winner) {
 	if (!tied) {
 		winner.points[winner.cur.type].push(winner.cur);
 	}
-	io.to(match.matchId).emit("fight result", {
+	var data = {
 		tied: tied,
 		winner: {
-			socketId: winner.socket.id.substring(2),
+			socketId: winner.socket.id,
 			card: winner.cur,
 			points: winner.points
 		},
 		loser: {
-			socketId: loser.socket.id.substring(2),
+			socketId: loser.socket.id,
 			card: loser.cur,
 			points: loser.points
 		}
-	});
+	};
+	io.to(match.matchId).emit("fight result", data);
 	if (checkForSet(winner)) {
 		endMatch(match, winner, "set");
 	} else {
@@ -311,7 +312,7 @@ function leaveMatch(socket) {
 
 function endMatch(match, winner, reason) {
 	if (logFull) console.log("%s(%j)", arguments.callee.name, Array.prototype.slice.call(arguments).sort());
-	io.to(match.matchId).emit("end match", winner.socket.id.substring(2), reason);
+	io.to(match.matchId).emit("end match", winner.socket.id, reason);
 	match.isOver = true;
 	match.timer = timerDuration;
 	match.timerActive = false;
